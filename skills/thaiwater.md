@@ -161,9 +161,11 @@ Storm category scale: Depression (<34 kt), Tropical Storm (34–63 kt), Typhoon 
 
 ---
 
-## HII Flash Flood Risk API (used by /risk-rainfall page)
+## HII APIs (Hydro and Agro Informatics Institute — สสน.)
 
-Operated by the Hydro and Agro Informatics Institute (สสน.). The token is embedded in the thaiwater.net JS bundle.
+HII operates several data systems, all accessible without user registration. Tokens below are embedded in the thaiwater.net JS bundle.
+
+### HII Flash Flood Risk API
 
 ```bash
 # Areas at risk of flash flood in the next 24 hours
@@ -188,6 +190,101 @@ Response fields:
 | `bannerWarning` | Boolean — whether to show a warning banner |
 
 Each `area` entry fields: `id`, `geocode`, `tambon`, `amphoe`, `province`, `region_id`, `region_name`, `oldcode`, `name` (station code), `agency`, `latitude`, `longitude`, `sum_rainfall_24h` or `sum_rainfall_48h` (mm), `latest_rainfall_datetime`
+
+---
+
+### HII fews2 Data Portal (flat-file CSV, no auth)
+
+Base URL: `https://fews2.hii.or.th/model-output/data_portal/`
+
+```bash
+# Flash flood risk report — all tambons nationwide with FFPI index
+curl -sL "https://fews2.hii.or.th/model-output/data_portal/flashflood/flashflood_report.txt"
+# CSV fields: tambon_id, province, district, subdistrict, FFPI, rain_1d_forecast, monitoring_station, basin
+
+# Active tropical storms / depressions
+curl -sL "https://fews2.hii.or.th/model-output/data_portal/flashflood/storm.txt"
+# CSV fields: name, file (image filename), lat, long
+
+# Drought index report — all tambons with DRI score
+curl -sL "https://fews2.hii.or.th/model-output/data_portal/drought/drought_dri_report.txt"
+# CSV fields: tambon_id, province, district, subdistrict, d_score, d_meaning (Thai), event_date
+
+# Water level station metadata with alarm/warning/critical thresholds
+curl -sL "https://fews2.hii.or.th/model-output/data_portal/metadata/hii_waterlevel.csv"
+
+# RID discharge station metadata with thresholds
+curl -sL "https://fews2.hii.or.th/model-output/data_portal/metadata/rid_discharge.csv"
+
+# Salinity monitoring stations (Chao Phraya S02–S09)
+curl -sL "https://fews2.hii.or.th/model-output/data_portal/metadata/mwa_salinity.csv"
+
+# Latest 24-hour accumulated rainfall radar image (PNG)
+curl -sL "https://fews2.hii.or.th/model-output/data_portal/radar/latest/png/rain24hrs.png" -o rain24hrs.png
+```
+
+#### Tide table — Gulf of Thailand stations
+
+```bash
+# Daily tide predictions — 9 Gulf of Thailand stations (4-hourly + max/min)
+curl -sL "https://fews2.hii.or.th/model-output/data_portal/tide_table/summary.txt"
+```
+
+CSV fields: `code`, `station.name.TH`, `station.name.EN`, `lat`, `long`, `date`, `max_value` (m), `max_time`, `min_value` (m), `min_time`, `time_0000`, `time_0400`, `time_0800`, `time_1200`, `time_1600`, `time_2000`
+
+Stations covered: Navy HQ (Sattahip), Bangkok Harbour, Fort Chulachomklao, Bangkok Bar, Tha Chin River mouth, Hua Hin, Rayong, Ao Sattahip, Ko Sichang
+
+---
+
+### HII tiservice API
+
+Two tokens — use the correct one per endpoint:
+- `TOKEN_SURGE` = `cEniGCuZcTBSa3xj4A8PY187BhpExTfE` (storm surge / wave)
+- `TOKEN_ISO` = `MBtOTp6IUXbjaCxhQoFQNrFgZUCzNgbo` (isohyet, PWV, GSMaP)
+
+```bash
+# Storm surge monitoring stations — 26 Gulf coast stations with warning status
+curl -sL "https://api.hii.or.th/tiservice/v1/ws/cEniGCuZcTBSa3xj4A8PY187BhpExTfE/model/stromsurge/station_info" \
+  -H "User-Agent: Mozilla/5.0"
+
+# Wave/storm surge animation (latest MP4 and GIF URLs)
+curl -sL "https://api.hii.or.th/tiservice/v1/ws/cEniGCuZcTBSa3xj4A8PY187BhpExTfE/stromsurge/wave/antimation/high_wave/lastest" \
+  -H "User-Agent: Mozilla/5.0"
+# Response: {Mp4:{date,time,file}, Gif:{date,time,file}}
+
+# Isohyet (rainfall contour) images by province — rain_1d, rain_3d, rain_7d
+# PROV_CODE = 2-digit province code (e.g. 10 = Bangkok, 50 = Chiang Mai)
+curl -sL "https://api.hii.or.th/tiservice/v1/ws/MBtOTp6IUXbjaCxhQoFQNrFgZUCzNgbo/isohyet/daily/latest/province/10" \
+  -H "User-Agent: Mozilla/5.0"
+# Response: {image:{rain_1d, rain_3d, rain_7d} (PNG URLs), geotiff, ascii}
+
+# Precipitable Water Vapor (PWV) latest image
+curl -sL "https://api.hii.or.th/tiservice/v1/ws/MBtOTp6IUXbjaCxhQoFQNrFgZUCzNgbo/pwv/latest" \
+  -H "User-Agent: Mozilla/5.0"
+
+# GSMaP / PERSIANN satellite rainfall products (latest)
+curl -sL "https://api.hii.or.th/v2/MBtOTp6IUXbjaCxhQoFQNrFgZUCzNgbo/model/gsmap/latest2" \
+  -H "User-Agent: Mozilla/5.0"
+# Response: {GSMaP_10km:[], GSMaP_25km:[], PERSIANN_4km:[]} — arrays of image URLs
+```
+
+Storm surge station fields: `id`, `name` (Thai/EN), `lat`, `lon`, `monitoring_level` (m), `warning_level` (m), `status`, `color`
+
+---
+
+### HII Urban / BMA Radar API
+
+```bash
+TOKEN_URBAN="oeLrEjIwGpHaT7pQ1p3kB2iZa6kRcYEXy0GGb75nLpPQxHqOU6"
+curl -sL "http://hydro-hims.hii.or.th/service/api/urban/data?token=${TOKEN_URBAN}" \
+  -H "User-Agent: Mozilla/5.0"
+```
+
+Response structure:
+- `system` — system name
+- `data[]` — array of `{time, url (PNG), status}`
+- `metadata` — `{radar_name, unit, colorbar (URL), xmin, xmax, ymin, ymax}`
+- `colorbar` — color-to-rainfall legend
 
 ---
 
