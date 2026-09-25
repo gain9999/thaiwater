@@ -61,6 +61,16 @@ Invoke a skill with a natural-language request as the argument:
 /ddpm active flood warnings right now
 ```
 
+## Tools
+
+`tools/flood_watch.py` builds a one-location flood snapshot from the same sources (thaiwater.net canal levels and rainfall, BMA road-flood sensors, HII tide table, Open-Meteo hourly rain forecast) and assigns a simple watch level from the nearest canal gauge's bank height:
+
+```bash
+python3 tools/flood_watch.py --lat 13.9656 --lon 100.6026 --primary BKK002 --compare BKK001,BKK021,CPY014 --gate ATG101 --out snapshot.json
+```
+
+It writes `snapshot.json` (full data for a dashboard) and `snapshot.log.json` (one-line check record). The level is a personal heuristic, not an official warning.
+
 ## Data Sources
 
 | Agency | System | Coverage |
