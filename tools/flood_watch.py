@@ -123,6 +123,7 @@ def main():
                 rain.append({
                     "name": s["tele_station_name"]["th"],
                     "km": round(km(a.lat, a.lon, la, lo), 1),
+                    "lat": round(la, 5), "lon": round(lo, 5),
                     "r24": num(r.get("rain_24h")),
                     "r1": num(r.get("rain_1h")),
                     "at": r.get("rainfall_datetime"),
@@ -223,7 +224,7 @@ def main():
         "rain_next6": rain_next6,
         "primary": a.primary,
         "stations": stations,
-        "rain": rain[:12],
+        "rain": rain[:16],
         "roads": roads[:10],
         "forecast": forecast,
         "tide": tide,
