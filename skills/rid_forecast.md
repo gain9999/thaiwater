@@ -10,7 +10,7 @@ The user asked: $ARGUMENTS
 ## How to respond
 
 1. Identify whether the user wants a **forecast chart** (คาดการณ์น้ำท่า, image) or **reference criteria** (warning thresholds, rainfall-runoff tables).
-2. Use Bash to `curl` the page/image; note the server returns **charset=windows-874** for HTML — pipe through `iconv -f WINDOWS-874 -t UTF-8`.
+2. Use Bash to `curl` the page/image; RID HTML pages use legacy Thai encodings (the index currently reports `ISO-8859-11`; other pages may report `windows-874` or `x-mac-thai`). Check the response `Content-Type` and pass its charset to `iconv` before reading Thai text.
 3. Forecast charts are **JPEG images with no numeric API** — download and read the image (vision) or report the `Last-Modified` date as the freshness signal. Never quote numbers off a chart unless you actually looked at it.
 4. For numeric station values (thresholds, current level, over-bank status) use the API skills instead: `thaiwater` (`/public/waterlevel_load`) or `wmsc_rid` (Telerid).
 
@@ -23,16 +23,17 @@ Published by ฝ่ายสารสนเทศและพยากรณ์�
 | URL | Content |
 |---|---|
 | `http://water.rid.go.th/itcwater/utok/index.html` | Index: station list per basin + reference links + station location map (`map2.jpg`) |
-| `http://water.rid.go.th/itcwater/utok/{CODE}.html` | One station page (small HTML page) |
-| `http://water.rid.go.th/itcwater/utok/F-{CODE}.jpg` | The forecast chart itself — 1400×780, ~0.25–0.6 MB |
+| `http://water.rid.go.th/itcwater/utok/{CODE}.html` | One station page (small HTML page); use the index filename code (for example `P1`, not the display label `P.1`) |
+| `http://water.rid.go.th/itcwater/utok/F-{CODE}.jpg` | The forecast chart itself — use the same punctuation-free filename code (for example `F-P1.jpg` for station P.1) |
 
 ```bash
 # Index (station list + criteria links)
-curl -sL "http://water.rid.go.th/itcwater/utok/index.html" | iconv -f WINDOWS-874 -t UTF-8 | sed -n '40,100p'
+curl -sL "http://water.rid.go.th/itcwater/utok/index.html" | iconv -f ISO-8859-11 -t UTF-8 | sed -n '40,100p'
 
-# A station's forecast chart
+# A station's forecast chart (RID filenames omit punctuation from display codes)
 curl -sL "http://water.rid.go.th/itcwater/utok/F-C2.jpg" -o F-C2.jpg
 curl -sI "http://water.rid.go.th/itcwater/utok/F-C2.jpg" | grep -i last-modified   # freshness
+# P.1 is named P1 in the URL: .../F-P1.jpg
 ```
 
 ### Station catalog (from the index page, verified 2026-09-25)

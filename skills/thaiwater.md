@@ -70,7 +70,7 @@ print('total over-bank:',len(over))
 "
 ```
 
-That run: 803 stations, 58 over-bank, all of them `situation_level` 5.
+In a 2026-09-25 snapshot, 58 of 803 stations were over-bank and all had `situation_level` 5. On 2026-09-29, 83 of 804 were over-bank; 77 had level 5 and six had no `situation_level`. Filter on `diff_wl_bank_text`; do not treat a missing or non-5 situation level as evidence that a station is below bank.
 
 Site equivalent: https://www.thaiwater.net/water/wl
 
@@ -253,13 +253,13 @@ curl -sL "https://fews2.hii.or.th/model-output/data_portal/radar/latest/png/rain
 #### Tide table — Gulf of Thailand stations
 
 ```bash
-# Daily tide predictions — 9 Gulf of Thailand stations (4-hourly + max/min)
+# Daily tide predictions — Thai coastal stations (currently 28; 4-hourly + max/min)
 curl -sL "https://fews2.hii.or.th/model-output/data_portal/tide_table/summary.txt"
 ```
 
 CSV fields: `code`, `station.name.TH`, `station.name.EN`, `lat`, `long`, `date`, `max_value` (m), `max_time`, `min_value` (m), `min_time`, `time_0000`, `time_0400`, `time_0800`, `time_1200`, `time_1600`, `time_2000`
 
-Stations covered: Navy HQ (Sattahip), Bangkok Harbour, Fort Chulachomklao, Bangkok Bar, Tha Chin River mouth, Hua Hin, Rayong, Ao Sattahip, Ko Sichang
+Stations include Gulf and Andaman coastal sites: Navy HQ (Sattahip), Bangkok Harbour, Fort Chulachomklao, Bangkok Bar, Tha Chin River mouth, Hua Hin, Rayong, Ao Sattahip, Ko Sichang, and others. The feed returned 28 station codes on 2026-09-29; use the live file for current coverage.
 
 ---
 
@@ -342,3 +342,5 @@ RID's own forecast charts and tide predictions that accompany these pages are **
 - Level 3: Warning (orange)
 - Level 4: Critical / Flood risk (red)
 - Level 5: Over-bank (น้ำล้นตลิ่ง — water above the river bank; `diff_wl_bank_text` = `ล้นตลิ่ง (ม.)`)
+
+Use `diff_wl_bank_text` as the over-bank indicator. `situation_level` can be missing, so it is not a complete substitute.

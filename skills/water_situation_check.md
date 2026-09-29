@@ -70,7 +70,7 @@ print('total over-bank:',len(over))
 "
 ```
 
-`situation_level`: 1 normal → 2 watch → 3 warning → 4 critical → **5 = over-bank (ล้นตลิ่ง)**. Verified 2026-09-25: 58 of 803 stations were over-bank, all of them reported level 5; levels 1–4 are always still below bank. `diff_wl_bank` is a magnitude — always read it together with `diff_wl_bank_text` to know whether the station is above or below bank.
+`situation_level`: 1 normal → 2 watch → 3 warning → 4 critical → 5 over-bank. Use `diff_wl_bank_text` as the direct indicator: on 2026-09-29, 83 of 804 stations were marked over-bank, but six had no `situation_level`. A missing level does not mean the station is below bank. `diff_wl_bank` is a magnitude; read it with the text to determine whether the station is above or below bank.
 
 Site equivalent: https://www.thaiwater.net/water/wl
 
@@ -92,7 +92,7 @@ curl -sL "https://api-v3.thaiwater.net/api/v1/thaiwater30/analyst/dam?dam_size=1
 Do not react to the storage percentage alone. Ask:
 
 1. Is the reservoir still in its normal **inflow season** (for most Thai dams the peak inflow window is Aug–Oct)? If storage is low but the season has not ended, low storage is not yet a drought signal.
-2. Compared with the same date in previous years, is inflow still arriving? If the reservoir is near full while past years still had inflow left, plan for **releases** to protect dam stability.
+2. Compare inflow with the same date in previous years and check current official operating notices. Do not infer or recommend releases from storage and inflow alone.
 3. Any release decision is (and must be) taken together with downstream river level and the rain outlook — never quote a release as "flooding caused by the dam".
 
 Site equivalent: https://www.thaiwater.net/water/dam/large

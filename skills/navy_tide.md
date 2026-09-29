@@ -18,15 +18,15 @@ The user asked: $ARGUMENTS
 ## 1. Scriptable tide table — HII fews2 (same data family shown on thaiwater.net)
 
 ```bash
-# Daily tide predictions — 9 Gulf of Thailand stations, 4-hourly + daily max/min
+# Daily tide predictions — currently 28 Thai coastal stations, 4-hourly + daily max/min
 curl -sL "https://fews2.hii.or.th/model-output/data_portal/tide_table/summary.txt"
 ```
 
 CSV fields: `code`, `station.name.TH`, `station.name.EN`, `lat`, `long`, `date`, `max_value` (m), `max_time`, `min_value` (m), `min_time`, `time_0000`, `time_0400`, `time_0800`, `time_1200`, `time_1600`, `time_2000`
 
-Stations: N01 Navy HQ (Sattahip) · N02 Bangkok Harbour (ท่าเรือกรุงเทพ) · N03 Fort Chulachomklao (ป้อมพระจุล) · and 6 more along the Gulf coast.
+The feed returned 28 station codes (N01–N28) on 2026-09-29, covering Gulf and Andaman coastal sites. Examples: N01 Navy HQ (Sattahip), N02 Bangkok Harbour (ท่าเรือกรุงเทพ), N03 Fort Chulachomklao (ป้อมพระจุล).
 
-Verified 2026-09-25: file present with that day's rows (one row per station per day).
+Verified 2026-09-29: file present with one row per station for that date. Station coverage can change; use the rows returned by the current feed.
 
 Related HII tide/sea products:
 
