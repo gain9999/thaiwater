@@ -7,7 +7,7 @@ Run the standard 6-step "is this flood situation getting worse, holding, or mild
 
 The user asked: $ARGUMENTS
 
-The routine below mirrors what Thai water researchers publish for the public (adapted from a 25 Sep 2026 post by อ.น้อย / thaiwater.net, which walked citizens through exactly these six checks). Do the steps in order and report findings step by step — do not jump to a conclusion after one dataset.
+The routine below follows Sitang Pilailar (อ.น้อย)'s 25 Sep 2026 public post, which walks through these six checks. Do the steps in order and report findings step by step — do not jump to a conclusion after one dataset.
 
 ## How to respond
 
@@ -92,8 +92,8 @@ curl -sL "https://api-v3.thaiwater.net/api/v1/thaiwater30/analyst/dam?dam_size=1
 Do not react to the storage percentage alone. Ask:
 
 1. Is the reservoir still in its normal **inflow season** (for most Thai dams the peak inflow window is Aug–Oct)? If storage is low but the season has not ended, low storage is not yet a drought signal.
-2. Compare inflow with the same date in previous years and check current official operating notices. Do not infer or recommend releases from storage and inflow alone.
-3. Any release decision is (and must be) taken together with downstream river level and the rain outlook — never quote a release as "flooding caused by the dam".
+2. Compare inflow with the same date in previous years. If the reservoir is near full while historical inflow typically continues, flag that releases may be needed to protect dam stability; this is an expectation to monitor, not confirmation of a release plan.
+3. Actual release changes are for the responsible agencies to decide using downstream river levels and current and forecast rain. Do not present a possible release as a confirmed action or as proof that a dam caused flooding.
 
 Site equivalent: https://www.thaiwater.net/water/dam/large
 
