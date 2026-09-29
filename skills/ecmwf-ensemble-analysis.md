@@ -1,7 +1,7 @@
 ---
 name: ecmwf-ensemble-analysis
 description: >-
-  Retrieves ECMWF ensemble forecasts (50 members), processes GRIB2 precipitation and atmospheric data, computes discrete 24-hour daily accumulations, multi-threshold exceedance probabilities (>20mm, >50mm, >100mm), percentile quantiles (Q50, Q90, ensemble maximum), and exploratory spatial rainfall diagnostics. These are not ECMWF EFI/SOT, which require model climatology. Use when asked to download ECMWF ensemble data, plot extreme weather probability maps, generate 14-day forecast dashboards, or perform ensemble meteorological risk analysis. Don't use for raw satellite imagery or non-ECMWF GFS data.
+  Retrieves ECMWF ensemble forecasts (50 members), processes GRIB2 precipitation and atmospheric data, computes discrete 24-hour daily accumulations, exceedance probabilities and percentiles, and can estimate an explicitly labeled EFI-like index against a free historical climatology. Use when asked to download ECMWF ensemble data, map rainfall risk, or approximate EFI/SOT without ECMWF M-climate access. Don't describe the proxy as official ECMWF EFI/SOT. Don't use for raw satellite imagery or non-ECMWF GFS data.
 ---
 
 # ECMWF Ensemble Data Processing & Risk Analysis
@@ -93,10 +93,10 @@ test -r ~/.ecmwfapirc && echo "ECMWF credentials configured"
 
 ## Data Retrieval & Discrete Daily Differencing
 
-### 1. Free Open Data vs. MARS Subscription
+### 1. Free Open Data vs. Model Climatology
 * **Free Open Data (`ecmwf.opendata`)**: Accesses public ECMWF forecasts (`data.ecmwf.int`). Provides 50 perturbed ensemble members (`stream="enfo"`, `type="pf"`) for lead times up to **360 hours (15 days)**.
-* **MARS Subscription (`ecmwf-api-client`)**: Pre-computed Extreme Forecast Index (`type="ef"`) and Shift of Tail (`type="es"`) require a MARS subscription account.
-* **Solution**: You can derive ensemble exceedance probabilities and percentiles directly from the 50 free perturbed members. True ECMWF EFI/SOT require model-climate references and cannot be calculated from a single forecast ensemble alone.
+* **Climatology limitation**: Open forecast members alone cannot produce EFI or SOT: both compare a forecast distribution with a reference climate distribution. ECMWF's official EFI uses its model climate (M-climate), built from reforecasts. That reference is distinct from the current free real-time forecast subset; check ECMWF's current data-access terms before assuming M-climate fields or reforecasts are freely downloadable.
+* **Free-data approach**: Use a free historical gridded dataset such as ERA5 as a documented reference climatology, then compare today's ECMWF ensemble to it. This yields an **ERA5-referenced EFI-like index**, not ECMWF EFI: the forecast model and reference dataset differ, and ERA5 does not reproduce ECMWF's lead-time-dependent M-climate. Keep this distinction visible in field names, map titles, legends, and any published interpretation.
 
 ### 2. Downloading Multi-Day Ensemble Data
 ECMWF total precipitation (`param="tp"`) is accumulated from forecast time $T=0$. To analyze a multi-day window (e.g. 14 days), download the full set of 24h daily steps:
@@ -164,8 +164,46 @@ q90_extreme = daily_tp[day].quantile(0.90, dim="number") # Severe 90th percentil
 q100_max = daily_tp[day].max(dim="number")               # Largest sampled member (mm), not an upper bound
 ```
 
-### 3. Optional spatial diagnostics (not EFI or SOT)
-These exploratory fields do not use model climatology and must not be described as probabilities, climatological anomalies, or official EFI/SOT values. To report ECMWF EFI/SOT, use ECMWF's products or implement the documented M-climate calculation.
+### 3. EFI-like index from a free reference climatology
+This is the main free-data approximation when ECMWF M-climate is unavailable. Obtain historical 24-hour precipitation samples from a free gridded climate dataset (for example, ERA5), use the same accumulation definition as the forecast, and construct a calendar-day climatology at each grid cell. A practical starting window is the target day-of-year +/- 15 days across all available years. Regrid the reference consistently, and document the dataset, period, calendar window, accumulation, and interpolation method. ERA5 is an observation/reanalysis reference, not ECMWF's model climate; forecast bias and resolution differences can affect the result.
+
+At each grid cell, let `climate_samples` be those historical daily totals and `forecast_members` the 50 ECMWF daily totals. Evaluate the forecast empirical CDF at climate quantiles and integrate the weighted CDF difference:
+
+$$EFI_{like} = \frac{2}{\pi} \int_0^1 \frac{p - F_f(Q_c(p))}{\sqrt{p(1-p)}}\,dp$$
+
+Positive values indicate a forecast shifted toward wetter conditions relative to the selected reference. Do not apply official ECMWF EFI thresholds or interpret this as an official warning category. It is a rough proxy, especially where the climate product, model bias, grid resolution, or near-zero-rain frequency differ substantially.
+
+```python
+import numpy as np
+
+def efi_like_rain(forecast_members_mm, climate_samples_mm):
+    """Scalar-grid-cell EFI-like score; requires matched daily totals in mm."""
+    forecast = np.asarray(forecast_members_mm, dtype=float)
+    climate = np.asarray(climate_samples_mm, dtype=float)
+    forecast = forecast[np.isfinite(forecast)]
+    climate = climate[np.isfinite(climate)]
+    if forecast.size == 0 or climate.size < 20:
+        return np.nan
+
+    # Avoid the singular endpoints in the EFI weighting function.
+    p = np.linspace(0.005, 0.995, 199)
+    climate_quantiles = np.quantile(climate, p)
+    forecast_cdf = (forecast[:, None] <= climate_quantiles[None, :]).mean(axis=0)
+    integrand = (p - forecast_cdf) / np.sqrt(p * (1.0 - p))
+    return float((2.0 / np.pi) * np.trapz(integrand, p))
+```
+
+For an array workflow, apply this calculation independently to each latitude/longitude cell and forecast valid day; do not pool climate samples across locations. Use the same daily accumulation period for the ECMWF forecast and reference. Label outputs `efi_like_era5`, not `efi`.
+
+### 4. SOT-like upper-tail shift from a free reference
+If a comparable reference climatology is available, the documented upper-tail SOT relationship can be approximated with forecast Q90 and climate Q90/Q99:
+
+$$SOT_{like}(90) = \frac{Q_{f}(90) - Q_{c}(99)}{Q_{c}(99) - Q_{c}(90)}$$
+
+Here `Qf` comes from today's ECMWF members, while `Qc` comes from the chosen free climate reference. Call this `sot_like_era5` (or name the selected reference); it is not ECMWF SOT and official thresholds do not transfer. Guard against a zero or near-zero climate Q99-Q90 denominator and return missing rather than an unstable value. The raw `(Q98 - Q50)` ensemble spread may still be reported in mm as a separate forecast-spread diagnostic, but it is not SOT.
+
+### 5. Optional spatial diagnostics (not EFI or SOT)
+Map-relative fields do not use climatology and must not be described as probabilities or climatological anomalies. They can supplement, but cannot replace, the reference-based EFI-like calculation above.
 
 ```python
 q50 = daily_tp[day].quantile(0.50, dim="number")
@@ -176,7 +214,7 @@ q98 = daily_tp[day].quantile(0.98, dim="number")
 # It is not a climatological anomaly or an exceedance probability.
 q90_spatial_index = (q90 / (float(q90.max()) + 1e-5)).clip(0, 1)
 
-# Ensemble tail spread in millimeters; this is not ECMWF Shift of Tails (SOT).
+# Ensemble spread in millimeters; this is not ECMWF Shift of Tails (SOT).
 tail_spread_mm = q98 - q50
 ```
 
@@ -202,21 +240,23 @@ tail_spread_mm = q98 - q50
   * **Planning context**: Use Q90 to compare scenarios and identify areas for follow-up with hydrologic and official forecasts. Do not use ensemble rain quantiles alone to determine dam releases or emergency actions.
   * **Disaster response**: Use Q90 spatial footprints as one input for situational awareness, alongside official warnings and local observations.
 
-### 3. Spatially normalized Q90 index (not EFI)
+### 3. ERA5-referenced EFI-like score (not official EFI)
+* **Definition**: A weighted comparison between the ECMWF forecast ensemble CDF and a free historical precipitation reference CDF, using the EFI form of the integral. It preserves EFI's core distribution-comparison idea, but uses a different climate reference from ECMWF M-climate.
+* **Interpretation**: Positive values indicate a wetter-than-reference forecast. Do not use official EFI thresholds or label it simply `EFI`.
+* **Requirements**: Matched daily precipitation totals, per-grid-cell calendar-day climate samples, and documented reference dataset/time period. A single ECMWF ensemble run is not its own climatology.
+
+### 4. SOT-like Q90 shift (not official SOT)
+* **Definition**: `(forecast Q90 - climate Q99) / (climate Q99 - climate Q90)` using the chosen free climate reference.
+* **Interpretation**: It approximates the upper-tail comparison form, but ERA5-based values are not ECMWF SOT and its alert thresholds must not be borrowed. Mask cells with a near-zero denominator.
+
+### 5. Spatially normalized Q90 index (not EFI)
 * **Definition**: A map-relative score ($0.0$ to $1.0$) comparing Q90 with the maximum Q90 in the selected map. It has no climatology and is not an anomaly or probability.
 * **Mathematical Formula**:
   $$\text{spatial Q90 index} = \text{clip}\left(\frac{Q_{90}}{\max(Q_{90})}, 0, 1\right)$$
 * **Operational Use Cases**:
   * **Use**: Visual ranking of grid cells within this forecast map only. Do not use it for climatological or early-warning claims.
 
-### 4. Ensemble tail-spread ratio (not SOT)
-* **Definition**: This exploratory tail-spread ratio has no ECMWF SOT interpretation or calibrated alert thresholds and does not establish HILP risk.
-* **Mathematical Formula**:
-  $$\text{tail-spread ratio} = \frac{Q_{98} - Q_{50}}{Q_{50} + 2.0}$$
-* **Operational Use Cases**:
-  * **Use**: Compare ensemble spread within this forecast only. Do not infer HILP risk or use official SOT contour values from this ratio.
-
-### 5. Neighborhood Ensemble Probability (NEP)
+### 6. Neighborhood Ensemble Probability (NEP)
 * **Definition**: A spatial rolling average ($3\times3$ grid box pooling) that mitigates spatial positioning errors inherent in convective storm forecasts.
 * **Mathematical Formula**:
   $$\text{NEP}(x, y) = \frac{1}{9} \sum_{\Delta x \in \{-1,0,1\}} \sum_{\Delta y \in \{-1,0,1\}} \text{Prob}_{>\text{thresh}}(x + \Delta x, y + \Delta y)$$
