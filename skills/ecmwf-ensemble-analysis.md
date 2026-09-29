@@ -1,7 +1,7 @@
 ---
 name: ecmwf-ensemble-analysis
 description: >-
-  Retrieves ECMWF ensemble forecasts (50 members), processes GRIB2 precipitation and atmospheric data, computes discrete 24-hour daily accumulations, multi-threshold exceedance probabilities (>20mm, >50mm, >100mm), percentile quantiles (Q50, Q90, and ensemble maximum), and an EFI-inspired spatial rainfall score using only the current forecast. The score is a map-relative heuristic, not climate-relative EFI or official ECMWF EFI/SOT. Use when asked to download ECMWF Open Data or map ensemble rainfall risk without external historical datasets. Don't use for raw satellite imagery or non-ECMWF GFS data.
+  Retrieves ECMWF ensemble forecasts (50 members), processes GRIB2 precipitation and atmospheric data, computes discrete 24-hour daily accumulations, multi-threshold exceedance probabilities (>20mm, >50mm, >100mm), percentile quantiles (Q50, Q90, and ensemble maximum), an EFI-inspired spatial rainfall score, and SOT-inspired tail-spread contours using only the current forecast. These are map-relative heuristics, not climate-relative EFI or official ECMWF EFI/SOT. Use when asked to download ECMWF Open Data or map ensemble rainfall risk without external historical datasets. Don't use for raw satellite imagery or non-ECMWF GFS data.
 ---
 
 # ECMWF Ensemble Data Processing & Risk Analysis
@@ -176,7 +176,10 @@ q98 = daily_tp[day].quantile(0.98, dim="number")
 # It is not a climatological anomaly or an exceedance probability.
 efi_inspired_spatial_q90 = (q90 / (float(q90.max()) + 1e-5)).clip(0, 1)
 
-# Ensemble spread in millimeters; this is not ECMWF Shift of Tails (SOT).
+# Forecast-only tail-spread ratio; not ECMWF SOT and not climate-relative.
+tail_spread_ratio = ((q98 - q50) / (q50 + 2.0)).clip(0, 10)
+
+# Ensemble spread in millimeters, useful alongside the ratio.
 tail_spread_mm = q98 - q50
 ```
 
@@ -211,8 +214,9 @@ tail_spread_mm = q98 - q50
   * **Use**: Visual ranking of grid cells within this forecast map only. Pair it with rainfall in mm and exceedance probabilities; do not use it for climatological or early-warning claims.
 
 ### 4. Ensemble tail spread (not SOT)
-* **Definition**: `Q98 - Q50` in mm, describing spread within the current forecast ensemble only.
-* **Use**: Supplementary uncertainty diagnostic. It has no ECMWF SOT interpretation or calibrated alert thresholds.
+* **Definition**: The forecast-only tail-spread ratio `(Q98 - Q50) / (Q50 + 2 mm)`, optionally clipped to 0-10 for display. Also retain `Q98 - Q50` in mm as the absolute ensemble spread.
+* **Contours**: The example levels 0, 1, 2, 5, and 8 are heuristic display breakpoints only. They are not ECMWF SOT thresholds and do not have a climatological interpretation.
+* **Use**: Supplementary diagnostic of upper-tail separation in this forecast ensemble, not an official alert category.
 
 ### 5. Neighborhood Ensemble Probability (NEP)
 * **Definition**: A spatial rolling average ($3\times3$ grid box pooling) that mitigates spatial positioning errors inherent in convective storm forecasts.
@@ -226,7 +230,7 @@ tail_spread_mm = q98 - q50
 
 ## Visualization & Plotting Recipes
 
-### 1. Rainfall percentile and tail-spread map (Thailand Region)
+### 1. EFI-inspired rainfall shading and SOT-inspired tail-spread contours (Thailand Region)
 ```python
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
@@ -239,9 +243,9 @@ ax.set_extent([97.0, 106.0, 5.0, 21.0], crs=ccrs.PlateCarree())
 # Shaded EFI-inspired spatial Q90 score; forecast-only, not climate-relative EFI.
 q90_cntr = ax.contourf(lons, lats, efi_inspired_spatial_q90.values, levels=np.linspace(0, 1, 21), cmap="YlOrRd")
 
-# Tail-spread contours in millimeters; not SOT.
-tail_cntr = ax.contour(lons, lats, tail_spread_mm.values, levels=5, colors='black', linewidths=1.3)
-ax.clabel(tail_cntr, inline=True, fmt='%.0f mm', fontsize=9)
+# SOT-inspired tail-spread proxy contours; levels are heuristic, not official SOT.
+tail_cntr = ax.contour(lons, lats, tail_spread_ratio.values, levels=[0, 1, 2, 5, 8], colors='black', linewidths=1.3)
+ax.clabel(tail_cntr, inline=True, fmt='%g', fontsize=9)
 
 # Geography & Province Boundaries
 provinces = cfeature.NaturalEarthFeature(
