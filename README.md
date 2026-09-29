@@ -20,6 +20,7 @@ Each skill is a `.md` file that acts as a slash command — invoke it by name an
 | `/rid_forecast` | water.rid.go.th | RID runoff / water-level forecasts (คาดการณ์น้ำท่า) as per-station charts, plus hydrology warning criteria and rainfall-runoff reference data |
 | `/navy_tide` | กรมอุทกศาสตร์ + HII | Tide predictions for the Gulf of Thailand / Bangkok (scriptable tide table + browser-only Navy dashboard) |
 | `/water_situation_check` | (cross-skill) | The 6-step daily "is it getting worse?" routine that chains the skills above, the way Thai water analysts do it |
+| `/ecmwf-ensemble-analysis` | ECMWF Open Data | Ensemble rainfall probabilities, percentiles, and Thailand maps (spatial diagnostics are not climatological EFI/SOT) |
 
 ## Installation
 
@@ -66,6 +67,7 @@ Invoke a skill with a natural-language request as the argument:
 /rid_forecast the Chao Phraya forecast chart at C.2
 /navy_tide tide heights for Bangkok tomorrow
 /water_situation_check should I worry about flooding this week?
+/ecmwf-ensemble-analysis map ensemble rainfall risk for Thailand
 ```
 
 ## Data Sources
