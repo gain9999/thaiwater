@@ -36,8 +36,10 @@ Site equivalent for a human: https://www.thaiwater.net/weather/rainfall
 ```bash
 # 3-day accumulated rainfall per station (ฝนสะสม 3 วันย้อนหลัง)
 curl -sL "https://api-v3.thaiwater.net/api/v1/thaiwater30/provinces/rain3d" -H "Accept: application/json"
-# Fallback if the province aggregate is empty (it has been returning [] during Sep 2026):
-curl -sL "https://api-v3.thaiwater.net/api/v1/thaiwater30/provinces/rain3d_graph?station_id=3687&start_date=2026-09-20&end_date=2026-09-26" -H "Accept: application/json"
+# If the national aggregate is empty, use rain3d_graph for a station in the area
+# being assessed. Replace STATION_ID with its station.id and use the last three
+# complete calendar dates (not the current, potentially incomplete day).
+curl -sL "https://api-v3.thaiwater.net/api/v1/thaiwater30/provinces/rain3d_graph?station_id=STATION_ID&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD" -H "Accept: application/json"
 
 # Flash-flood risk for the next 24 / 48 h (HII, tambon level with FFPI)
 curl -sL "https://api.hii.or.th/v2/4UQaYnf0Bx4fXPYyCdDRbqHyXH9Ixvd2nVUjaN1cLBY=/warning/flashflood-24h" -H "User-Agent: Mozilla/5.0"
