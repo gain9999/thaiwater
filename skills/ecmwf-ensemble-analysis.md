@@ -1,7 +1,7 @@
 ---
 name: ecmwf-ensemble-analysis
 description: >-
-  Retrieves ECMWF ensemble forecasts (50 members), processes GRIB2 precipitation and atmospheric data, computes discrete 24-hour daily accumulations, multi-threshold exceedance probabilities (>20mm, >50mm, >100mm), percentile quantiles (Q50, Q90, and ensemble maximum), an EFI-inspired spatial rainfall score, and SOT-inspired tail-spread contours using only the current forecast. These are map-relative heuristics, not climate-relative EFI or official ECMWF EFI/SOT. Use when asked to download ECMWF Open Data or map ensemble rainfall risk without external historical datasets. Don't use for raw satellite imagery or non-ECMWF GFS data.
+  Retrieves ECMWF ensemble forecasts (50 members), processes GRIB2 precipitation and atmospheric data, computes discrete 24-hour daily accumulations, multi-threshold exceedance probabilities (>20mm, >50mm, >100mm), percentile quantiles (Q50, Q90, and ensemble maximum), an EFI-inspired spatial rainfall score, and SOT-inspired tail-spread contours using only the current forecast. These are forecast-relative heuristics, not climate-relative EFI or official ECMWF EFI/SOT. Use when asked to download ECMWF Open Data or map ensemble rainfall risk without external historical datasets. Don't use for raw satellite imagery or non-ECMWF GFS data.
 ---
 
 # ECMWF Ensemble Data Processing & Risk Analysis
@@ -96,7 +96,7 @@ test -r ~/.ecmwfapirc && echo "ECMWF credentials configured"
 ### 1. Free Open Data vs. Model Climatology
 * **Free Open Data (`ecmwf.opendata`)**: Accesses public ECMWF forecasts (`data.ecmwf.int`). Provides 50 perturbed ensemble members (`stream="enfo"`, `type="pf"`) for lead times up to **360 hours (15 days)**.
 * **EFI limitation**: Official EFI compares the forecast distribution with ECMWF's model climate (M-climate), built from reforecasts. The current free forecast members alone do not contain that reference distribution, so they cannot produce official EFI or a climate-relative EFI approximation.
-* **Open-data approach**: To keep analysis fast and self-contained, use current ensemble members to calculate an **EFI-inspired spatial rainfall score** from Q90. This ranks forecast rainfall intensity within the selected map only; it does not measure rarity relative to local climate, and must not be labeled or interpreted as EFI. No historical dataset is required.
+* **Open-data approach**: To keep analysis fast and self-contained, use current ensemble members to calculate an **EFI-inspired spatial rainfall score** from Q90, normalized against the 90th percentile of the downloaded forecast data. It does not measure rarity relative to local climate, and must not be labeled or interpreted as EFI. No historical dataset is required.
 
 ### 2. Downloading Multi-Day Ensemble Data
 ECMWF total precipitation (`param="tp"`) is accumulated from forecast time $T=0$. To analyze a multi-day window (e.g. 14 days), download the full set of 24h daily steps:
@@ -165,16 +165,16 @@ q100_max = daily_tp[day].max(dim="number")               # Largest sampled membe
 ```
 
 ### 3. EFI-inspired spatial rainfall score (not EFI)
-This quick diagnostic uses only the current forecast ensemble. Normalize each grid cell's Q90 rainfall against the maximum Q90 in the selected map. This preserves a simple, EFI-inspired spatial highlight without downloading historical data, but it is only a relative map score: it says where forecast Q90 is largest in this map, not whether rain is unusual for that location or season. Do not apply official EFI thresholds or describe it as a climatological anomaly.
+This quick diagnostic uses only the current forecast ensemble. Normalize each grid cell's daily Q90 against the 90th percentile of all downloaded forecast values, preserving the original plotting scale without downloading historical data. It is forecast-relative only and does not measure whether rain is unusual for that location or season. Do not apply official EFI thresholds or describe it as a climatological anomaly.
 
 ```python
 q50 = daily_tp[day].quantile(0.50, dim="number")
 q90 = daily_tp[day].quantile(0.90, dim="number")
 q98 = daily_tp[day].quantile(0.98, dim="number")
 
-# Spatially normalized Q90, useful only to rank grid cells in this map.
-# It is not a climatological anomaly or an exceedance probability.
-efi_inspired_spatial_q90 = (q90 / (float(q90.max()) + 1e-5)).clip(0, 1)
+# Preserve the original forecast-wide normalization so existing plots remain comparable.
+# This is not a climatological anomaly or an exceedance probability.
+efi_inspired_spatial_q90 = (q90 / (float(tp_mm.quantile(0.90).max()) + 1e-5)).clip(0, 1)
 
 # Forecast-only tail-spread ratio; not ECMWF SOT and not climate-relative.
 tail_spread_ratio = ((q98 - q50) / (q50 + 2.0)).clip(0, 10)
@@ -206,12 +206,12 @@ tail_spread_mm = q98 - q50
   * **Disaster response**: Use Q90 spatial footprints as one input for situational awareness, alongside official warnings and local observations.
 
 ### 3. EFI-inspired spatial rainfall score (not EFI)
-* **Definition**: A map-relative score ($0.0$ to $1.0$) comparing Q90 with the maximum Q90 in the selected map. It has no climatology and is not an anomaly or probability.
+* **Definition**: A forecast-relative score ($0.0$ to $1.0$) comparing daily Q90 with the 90th percentile of the downloaded forecast data. It has no climatology and is not an anomaly or probability.
 * **Name**: Use `efi_inspired_spatial_q90`, never `efi` or `efi_like`.
 * **Mathematical Formula**:
-  $$\text{EFI-inspired spatial Q90 score} = \text{clip}\left(\frac{Q_{90}}{\max(Q_{90})}, 0, 1\right)$$
+  $$\text{EFI-inspired Q90 score} = \text{clip}\left(\frac{Q_{90,day}}{Q_{90,all\ downloaded\ forecast}+10^{-5}}, 0, 1\right)$$
 * **Operational Use Cases**:
-  * **Use**: Visual ranking of grid cells within this forecast map only. Pair it with rainfall in mm and exceedance probabilities; do not use it for climatological or early-warning claims.
+  * **Use**: Preserve comparable forecast-map shading across reruns over the same downloaded data. Pair it with rainfall in mm and exceedance probabilities; do not use it for climatological or early-warning claims.
 
 ### 4. Ensemble tail spread (not SOT)
 * **Definition**: The forecast-only tail-spread ratio `(Q98 - Q50) / (Q50 + 2 mm)`, optionally clipped to 0-10 for display. Also retain `Q98 - Q50` in mm as the absolute ensemble spread.
