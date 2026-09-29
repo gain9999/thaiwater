@@ -1,7 +1,7 @@
 ---
 name: ecmwf-ensemble-analysis
 description: >-
-  Retrieves ECMWF ensemble forecasts (50 members), processes GRIB2 precipitation and atmospheric data, computes discrete 24-hour daily accumulations, multi-threshold exceedance probabilities (>20mm, >50mm, >100mm), percentile quantiles (Q50, Q90, Q100 worst-case member), Extreme Forecast Index (EFI) proxy, and Shift of Tail (SOT) contours. Use when asked to download ECMWF ensemble data, plot extreme weather probability maps, generate 14-day forecast dashboards, compute High-Impact Low-Probability (HILP) deluge risks, or perform ensemble meteorological risk analysis. Don't use for raw satellite imagery or non-ECMWF GFS data.
+  Retrieves ECMWF ensemble forecasts (50 members), processes GRIB2 precipitation and atmospheric data, computes discrete 24-hour daily accumulations, multi-threshold exceedance probabilities (>20mm, >50mm, >100mm), percentile quantiles (Q50, Q90, and ensemble maximum), an EFI-inspired spatial rainfall score, and SOT-inspired tail-spread contours using only the current forecast. These are forecast-relative heuristics, not climate-relative EFI or official ECMWF EFI/SOT. Use when asked to download ECMWF Open Data or map ensemble rainfall risk without external historical datasets. Don't use for raw satellite imagery or non-ECMWF GFS data.
 ---
 
 # ECMWF Ensemble Data Processing & Risk Analysis
@@ -82,9 +82,9 @@ Save your credentials to a file named `.ecmwfapirc` in your home directory (`~/.
 ```
 
 ```bash
-# Verify the configuration file exists and has appropriate permissions
-cat ~/.ecmwfapirc
+# Restrict access and verify the configuration file is readable without printing its secrets
 chmod 600 ~/.ecmwfapirc
+test -r ~/.ecmwfapirc && echo "ECMWF credentials configured"
 ```
 
 * **Note**: `ecmwf.opendata.Client()` retrieves public open data feeds (`data.ecmwf.int`). Configuring `~/.ecmwfapirc` is required when using `ecmwf-api-client` (`from ecmwfapi import ECMWFDataServer`) to query Web API or MARS archived datasets.
@@ -93,10 +93,10 @@ chmod 600 ~/.ecmwfapirc
 
 ## Data Retrieval & Discrete Daily Differencing
 
-### 1. Free Open Data vs. MARS Subscription
+### 1. Free Open Data vs. Model Climatology
 * **Free Open Data (`ecmwf.opendata`)**: Accesses public ECMWF forecasts (`data.ecmwf.int`). Provides 50 perturbed ensemble members (`stream="enfo"`, `type="pf"`) for lead times up to **360 hours (15 days)**.
-* **MARS Subscription (`ecmwf-api-client`)**: Pre-computed Extreme Forecast Index (`type="ef"`) and Shift of Tail (`type="es"`) require a MARS subscription account.
-* **Solution**: You can derive exact physical risk probabilities, percentiles, and EFI/SOT proxies directly from the 50 free ensemble members.
+* **EFI limitation**: Official EFI compares the forecast distribution with ECMWF's model climate (M-climate), built from reforecasts. The current free forecast members alone do not contain that reference distribution, so they cannot produce official EFI or a climate-relative EFI approximation.
+* **Open-data approach**: To keep analysis fast and self-contained, use current ensemble members to calculate an **EFI-inspired spatial rainfall score** from Q90, normalized against the 90th percentile of the downloaded forecast data. It does not measure rarity relative to local climate, and must not be labeled or interpreted as EFI. No historical dataset is required.
 
 ### 2. Downloading Multi-Day Ensemble Data
 ECMWF total precipitation (`param="tp"`) is accumulated from forecast time $T=0$. To analyze a multi-day window (e.g. 14 days), download the full set of 24h daily steps:
@@ -161,22 +161,26 @@ prob_100mm = (daily_tp[day] > 100.0).mean(dim="number") * 100.0
 ```python
 q50_median = daily_tp[day].quantile(0.50, dim="number")  # Most likely baseline (mm)
 q90_extreme = daily_tp[day].quantile(0.90, dim="number") # Severe 90th percentile (mm)
-q100_max = daily_tp[day].max(dim="number")               # Worst-case ensemble member (mm)
+q100_max = daily_tp[day].max(dim="number")               # Largest sampled member (mm), not an upper bound
 ```
 
-### 3. Open Data EFI and SOT Proxies
-Replicate ECMWF official EFI shading ($0.0 - 1.0$) and Shift of Tail (SOT) isolines ($0, 1, 2, 5, 8$):
+### 3. EFI-inspired spatial rainfall score (not EFI)
+This quick diagnostic uses only the current forecast ensemble. Normalize each grid cell's daily Q90 against the 90th percentile of all downloaded forecast values, preserving the original plotting scale without downloading historical data. It is forecast-relative only and does not measure whether rain is unusual for that location or season. Do not apply official EFI thresholds or describe it as a climatological anomaly.
 
 ```python
 q50 = daily_tp[day].quantile(0.50, dim="number")
 q90 = daily_tp[day].quantile(0.90, dim="number")
 q98 = daily_tp[day].quantile(0.98, dim="number")
 
-# EFI Proxy: Normalized 90th percentile intensity (0 to 1)
-efi_proxy = (q90 / (float(tp_mm.quantile(0.90).max()) + 1e-5)).clip(0, 1)
+# Preserve the original forecast-wide normalization so existing plots remain comparable.
+# This is not a climatological anomaly or an exceedance probability.
+efi_inspired_spatial_q90 = (q90 / (float(tp_mm.quantile(0.90).max()) + 1e-5)).clip(0, 1)
 
-# SOT Proxy: Shift of extreme tail (Q98) over median (Q50)
-sot_proxy = ((q98 - q50) / (q50 + 2.0)).clip(0, 10)
+# Forecast-only tail-spread ratio; not ECMWF SOT and not climate-relative.
+tail_spread_ratio = ((q98 - q50) / (q50 + 2.0)).clip(0, 10)
+
+# Ensemble spread in millimeters, useful alongside the ratio.
+tail_spread_mm = q98 - q50
 ```
 
 ---
@@ -196,24 +200,23 @@ sot_proxy = ((q98 - q50) / (q50 + 2.0)).clip(0, 10)
 * **Definitions**:
   * **Ensemble Median ($Q_{50}$)**: The 50th percentile daily rainfall; represents the central expectation / baseline forecast.
   * **90th Percentile ($Q_{90}$)**: High-end severe rain scenario (only 10% of ensemble members forecast higher rainfall).
-  * **Ensemble Maximum ($Q_{100}$)**: The worst-case member among the 50 simulations.
+* **Ensemble maximum ($Q_{100}$)**: The largest value among the 50 perturbed members; it is not a bound on possible rainfall.
 * **Operational Use Cases**:
-  * **Reservoir & Dam Management**: Using $Q_{90}$ and $Q_{100}$ for emergency spillway release planning and flood retention volume estimation.
-  * **Disaster Response Pre-positioning**: Allocating emergency pumps, rescue boats, and relief supplies based on $Q_{90}$ spatial footprints.
+  * **Planning context**: Use Q90 to compare scenarios and identify areas for follow-up with hydrologic and official forecasts. Do not use ensemble rain quantiles alone to determine dam releases or emergency actions.
+  * **Disaster response**: Use Q90 spatial footprints as one input for situational awareness, alongside official warnings and local observations.
 
-### 3. Extreme Forecast Index (EFI) Proxy
-* **Definition**: A normalized score ($0.0$ to $1.0$) measuring how far the ensemble 90th percentile shifts relative to the regional upper-tail maximum.
+### 3. EFI-inspired spatial rainfall score (not EFI)
+* **Definition**: A forecast-relative score ($0.0$ to $1.0$) comparing daily Q90 with the 90th percentile of the downloaded forecast data. It has no climatology and is not an anomaly or probability.
+* **Name**: Use `efi_inspired_spatial_q90`, never `efi` or `efi_like`.
 * **Mathematical Formula**:
-  $$\text{EFI}_{\text{proxy}} = \text{clip}\left(\frac{Q_{90}}{\max(Q_{90})}, 0, 1\right)$$
+  $$\text{EFI-inspired Q90 score} = \text{clip}\left(\frac{Q_{90,day}}{Q_{90,all\ downloaded\ forecast}+10^{-5}}, 0, 1\right)$$
 * **Operational Use Cases**:
-  * **Early Warning Alerts**: Highlighting regions experiencing statistically unusual atmospheric moisture and instability before absolute physical thresholds are hit.
+  * **Use**: Preserve comparable forecast-map shading across reruns over the same downloaded data. Pair it with rainfall in mm and exceedance probabilities; do not use it for climatological or early-warning claims.
 
-### 4. Shift of Tail (SOT) Isolines ($0, 1, 2, 5, 8$)
-* **Definition**: Isolines quantifying the extreme tail shift of the upper 2% ($Q_{98}$) relative to the ensemble median ($Q_{50}$). $\text{SOT} \ge 1$ indicates that even the lower bound of the upper tail exceeds typical median rainfall; $\text{SOT} \ge 2, 5, 8$ signifies extreme localized convective deluge potential.
-* **Mathematical Formula**:
-  $$\text{SOT}_{\text{proxy}} = \text{clip}\left(\frac{Q_{98} - Q_{50}}{Q_{50} + 2.0}, 0, 10\right)$$
-* **Operational Use Cases**:
-  * **High-Impact Low-Probability (HILP) Event Tracking**: Identifying localized severe convective cells or tropical depression landfall zones where severe rain is concentrated in the extreme tail of the distribution.
+### 4. Ensemble tail spread (not SOT)
+* **Definition**: The forecast-only tail-spread ratio `(Q98 - Q50) / (Q50 + 2 mm)`, optionally clipped to 0-10 for display. Also retain `Q98 - Q50` in mm as the absolute ensemble spread.
+* **Contours**: The example levels 0, 1, 2, 5, and 8 are heuristic display breakpoints only. They are not ECMWF SOT thresholds and do not have a climatological interpretation.
+* **Use**: Supplementary diagnostic of upper-tail separation in this forecast ensemble, not an official alert category.
 
 ### 5. Neighborhood Ensemble Probability (NEP)
 * **Definition**: A spatial rolling average ($3\times3$ grid box pooling) that mitigates spatial positioning errors inherent in convective storm forecasts.
@@ -227,7 +230,7 @@ sot_proxy = ((q98 - q50) / (q50 + 2.0)).clip(0, 10)
 
 ## Visualization & Plotting Recipes
 
-### 1. ECMWF Official EFI + SOT Style Map (Thailand Region)
+### 1. EFI-inspired rainfall shading and SOT-inspired tail-spread contours (Thailand Region)
 ```python
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
@@ -237,12 +240,12 @@ fig = plt.figure(figsize=(10, 11))
 ax = fig.add_axes([0.10, 0.08, 0.68, 0.82], projection=ccrs.PlateCarree())
 ax.set_extent([97.0, 106.0, 5.0, 21.0], crs=ccrs.PlateCarree())
 
-# Shaded EFI (0.0 to 1.0)
-efi_cntr = ax.contourf(lons, lats, efi_proxy.values, levels=np.linspace(0, 1, 21), cmap="YlOrRd")
+# Shaded EFI-inspired spatial Q90 score; forecast-only, not climate-relative EFI.
+q90_cntr = ax.contourf(lons, lats, efi_inspired_spatial_q90.values, levels=np.linspace(0, 1, 21), cmap="YlOrRd")
 
-# Overlaid Black SOT Isolines (0, 1, 2, 5, 8)
-sot_cntr = ax.contour(lons, lats, sot_proxy.values, levels=[0, 1, 2, 5, 8], colors='black', linewidths=1.3)
-ax.clabel(sot_cntr, inline=True, fmt='%d', fontsize=9)
+# SOT-inspired tail-spread proxy contours; levels are heuristic, not official SOT.
+tail_cntr = ax.contour(lons, lats, tail_spread_ratio.values, levels=[0, 1, 2, 5, 8], colors='black', linewidths=1.3)
+ax.clabel(tail_cntr, inline=True, fmt='%g', fontsize=9)
 
 # Geography & Province Boundaries
 provinces = cfeature.NaturalEarthFeature(
