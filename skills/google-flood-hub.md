@@ -60,7 +60,7 @@ import json
 import numpy as np
 import requests
 
-API_KEY = "AIzaSyAuRmKSx5qbWnqAZJY8IZavLcQGXL7CrMA"
+API_KEY = "YOUR_GOOGLE_CLOUD_API_KEY"
 BASE_URL = "https://floodforecasting.googleapis.com/v1"
 
 
