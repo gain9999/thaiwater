@@ -1,7 +1,7 @@
 ---
 name: ecmwf-ensemble-analysis
 description: >-
-  Retrieves ECMWF ensemble forecasts (50 members), processes GRIB2 precipitation and atmospheric data, computes discrete 24-hour daily accumulations, exceedance probabilities, percentiles, and an EFI-inspired spatial rainfall score using only the current forecast. The score is a map-relative heuristic, not climate-relative EFI or official ECMWF EFI/SOT. Use when asked to download ECMWF Open Data or map ensemble rainfall risk without external historical datasets. Don't use for raw satellite imagery or non-ECMWF GFS data.
+  Retrieves ECMWF ensemble forecasts (50 members), processes GRIB2 precipitation and atmospheric data, computes discrete 24-hour daily accumulations, multi-threshold exceedance probabilities (>20mm, >50mm, >100mm), percentile quantiles (Q50, Q90, and ensemble maximum), and an EFI-inspired spatial rainfall score using only the current forecast. The score is a map-relative heuristic, not climate-relative EFI or official ECMWF EFI/SOT. Use when asked to download ECMWF Open Data or map ensemble rainfall risk without external historical datasets. Don't use for raw satellite imagery or non-ECMWF GFS data.
 ---
 
 # ECMWF Ensemble Data Processing & Risk Analysis
