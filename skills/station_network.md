@@ -362,3 +362,39 @@ How to read this
   (visible here as 1-hour lags).
 - To tighten this: route on discharge (C.2 and C.13 both publish it), pick isolated events rather
   than every rise, and extend the window beyond the ~2 months available here.
+
+## 10. Travel time from discharge (works — use this instead of levels)
+
+`tools/q_lag.py`. Cross-correlate the hourly increments of RID's discharge series
+(`waterlevel_graph_oldcode?station_id=<CODE>&agency_id=12`, 10-day slices) between two
+stations on the same reach. A release or diversion change is a sharp step, and a step has a
+signature; unlike water level, which every gauge sees rise at once when it rains, its timing
+carries the translation. Level-based correlation fails for exactly that reason (section 9).
+
+Measured 2026-09-30, 60 days for C.2/C.13 and 35 days for the rest (window limits are the
+API's, not the method's):
+
+| reach | river km (approx) | lag | r |
+|---|---|---|---|
+| C.2 -> C.13 | ~62 | 9 h | 0.63 |
+| C.13 -> C.3 | ~38 | 5 h | 0.75 |
+| C.3 -> C.7A | ~14 | 2 h | 0.87 |
+| C.13 -> C.7A | ~52 | 7 h | 0.70 |
+| C.7A -> C.36 | ~20 | 1 h | 0.83 |
+| C.35 -> C.36 | short | 2 h | 0.64 |
+| C.2 -> C.3 (direct) | ~100 | 24 h | 0.86 |
+
+Reading it
+
+- The below-dam chain is internally consistent: C.13 -> C.3 -> C.7A gives 5 h + 2 h and the
+  direct C.13 -> C.7A correlation lands on 7 h. Both r values are 0.7-0.87, i.e. real signal.
+- Speeds: ~38 km in 5 h and ~14 km in 2 h is 7-8 km/h, i.e. a wave celerity near 2 m/s. That is
+  faster than the water itself — expected for a flood wave, whose celerity in a wide channel runs
+  roughly 1.5x the mean velocity.
+- C.2 -> C.13 crosses the Chao Phraya Dam and is the weakest line (r 0.63): the dam releases on
+  its own operating schedule, so this is a dam-response lag, not pure routing.
+- C.2 -> C.3 direct (24 h) contradicts the 9 + 5 = 14 h chain, so the upstream link stays
+  unresolved; do not quote it.
+- Cross-check against the chart's fixed labels: cumulative C.2 -> Ang Thong comes out at
+  ~16 h measured (9 + 7), against the printed 20 ชม. in the Ang Thong zone — the same order.
+  Treat the chart labels as the reference and these measurements as the sanity check.

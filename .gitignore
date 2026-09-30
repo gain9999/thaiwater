@@ -4,3 +4,4 @@ data/watergate_load.json
 data/station_nodes.json
 data/series_raw.json
 data/raw/svg_paths.json
+data/discharge_cache.json
