@@ -1,0 +1,48 @@
+{
+ "pairs": [
+  {
+   "upstream": "PIN004",
+   "downstream": "PIN005",
+   "events": 4,
+   "median_lag_h": 7.0,
+   "min": 5.0,
+   "max": 7.0,
+   "lags": [
+    5.0,
+    6.0,
+    7.0,
+    7.0
+   ]
+  }
+ ],
+ "hours_of_data": {
+  "C.2": 0,
+  "CPY002": 0,
+  "CPY004": 0,
+  "C.13": 0,
+  "CPY005": 0,
+  "CPY006": 0,
+  "C.3": 0,
+  "CPY007": 0,
+  "C.7A": 0,
+  "CPY008": 0,
+  "CPY012": 0,
+  "CPY014": 0,
+  "PIN002": 0,
+  "PIN003": 0,
+  "PIN004": 1453,
+  "PIN005": 1453,
+  "NAN007": 0,
+  "NAN006": 1453,
+  "NAN014": 0,
+  "NAN011": 0,
+  "YOM009": 0,
+  "CPY001": 0
+ },
+ "params": {
+  "thresh_m": 0.2,
+  "cooldown_h": 48,
+  "window_h": 96,
+  "days": 60
+ }
+}

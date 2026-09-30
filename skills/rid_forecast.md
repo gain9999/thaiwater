@@ -50,6 +50,16 @@ curl -sI "http://water.rid.go.th/itcwater/utok/F-C2.jpg" | grep -i last-modified
 | มูล (Mun) | M.182, M.7 |
 | บางปะกง (Bang Pakong) | Kgt.3 |
 
+### C.2 carries printed numeric forecasts (verified 2026-09-30)
+
+The C.2 chart is not picture-only: it prints the numbers on the curves, so it can be read without a numeric API.
+
+- Header: `กราฟคาดการณ์ปริมาณน้ำล่วงหน้า 1 - 3 วัน ด้วยแบบจำลอง ANNs แม่น้ำเจ้าพระยา สถานี C.2 อ.เมือง จ.นครสวรรค์` + a data timestamp (`ข้อมูล ณ วันที่ … เวลา 06.00 น.`).
+- Series: blue = observed discharge (ลบ.ม./วิ), red = forecast discharge **and** water level in `ม.(รทก.)` printed as `2,713.00 (24.26 ม.)`, green dot = current discharge, red dashed = `ความจุลำน้ำ` (channel capacity).
+- Fixed station annotations: `ระดับตลิ่ง 25.70 ม.(รทก.) / ความจุลำน้ำ 3,735 ลบ.ม./วินาที เริ่มท่วมพื้นที่ลุ่มต่ำเขตเทศบาลนครสวรรค์`.
+- Reading it: the assistant has no native vision — download the JPEG and go through the image-vision (DeepSeek) skill. **Always crop/zoom the label area first**: a whole-chart read on 2026-09-30 returned 25.51/26.26/26.63 m MSL, while two independent zoomed reads of the printed labels gave the correct 24.26/24.64/24.63 m MSL (cross-checked against telemetry: C.2 12:00 = 23.77 m MSL / 2,443 m³/s).
+- Cross-check any read against the thaiwater API reading for the same station before quoting it.
+
 ### Chart availability (verified 2026-09-25 — check `Last-Modified` before trusting a chart)
 
 | Status | Stations |

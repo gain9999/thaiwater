@@ -1,0 +1,6 @@
+# Raw API payload caches — large and regenerable (see data/README.md)
+data/waterlevel_load.json
+data/watergate_load.json
+data/station_nodes.json
+data/series_raw.json
+data/raw/svg_paths.json

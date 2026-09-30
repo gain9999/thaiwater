@@ -1,0 +1,18 @@
+{
+ "nodes_total": 2270,
+ "with_wl": 806,
+ "with_gate": 1576,
+ "on_full_chart": 297,
+ "on_brief_chart": 127,
+ "drawing_only": 129,
+ "gates_by_basin_type": {
+  "dam": 0,
+  "regulator": 0,
+  "canal/other": 1439,
+  "HII": 125,
+  "RID": 9,
+  "EGAT": 3
+ },
+ "basins_fetched": 21,
+ "basins_failed": []
+}
