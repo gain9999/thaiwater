@@ -47,10 +47,10 @@ REGULATED = {
 }
 
 RATE_WIN = 12            # h, rise-rate window defining an event
-RATE_MIN = 0.10          # m per RATE_WIN to count as an event
-EVENT_SEP = 48           # h between events at the same station
+RATE_MIN = 0.15          # m per RATE_WIN to count as an event
+EVENT_SEP = 72           # h between events at the same station
 DOWN_MIN = 0.05          # m per RATE_WIN required downstream to accept a match
-WINDOW = 96              # h searched downstream
+WINDOW = 36              # h searched downstream (reaches here are 10-35 km)
 DAYS = 45
 CHUNK = 14               # days per request
 
@@ -148,12 +148,12 @@ def rate_events(series, win=RATE_WIN, amp=RATE_MIN, sep=EVENT_SEP):
     return sorted(picked, key=lambda x: x[1])
 
 
-def match_pairs(up, dn, max_lag=WINDOW, win=RATE_WIN, down_min=DOWN_MIN):
+def match_pairs(up, dn, su, sd, max_lag=WINDOW, win=RATE_WIN, down_min=DOWN_MIN):
     """For each upstream event, the strongest downstream rise within max_lag hours."""
     out = []
-    dgrid = sorted(dn)
-    dv = [dn[t] for t in dgrid]
-    for amp_u, t_u in rate_events(up, win=win):
+    dgrid = sorted(sd)
+    dv = [sd[t] for t in dgrid]
+    for amp_u, t_u in rate_events(su, win=win):
         best = None
         for i in range(len(dgrid) - win):
             t = dgrid[i]
@@ -180,6 +180,10 @@ def main():
     ap.add_argument('--days', type=int, default=DAYS)
     ap.add_argument('--tries', type=int, default=FETCH_TRIES[0])
     ap.add_argument('--pause', type=int, default=FETCH_PAUSE[0])
+    ap.add_argument('--no-fetch', action='store_true',
+                    help='analyse only the cached series, do not hit the API')
+    ap.add_argument('--rate-min', type=float, default=RATE_MIN)
+    ap.add_argument('--window', type=int, default=WINDOW)
     a = ap.parse_args()
     FETCH_TRIES[0], FETCH_PAUSE[0] = a.tries, a.pause
 
@@ -209,6 +213,9 @@ def main():
         for c in (up, dn):
             if c in series_ok:
                 continue
+            if a.no_fetch:
+                series_ok[c] = len(cache.get(c) or {})
+                continue
             try:
                 hourly(c, ids, a.days, cache=cache)          # populates the cache
                 series_ok[c] = len(cache.get(c) or {})
@@ -223,7 +230,8 @@ def main():
         sd = {datetime.datetime.fromisoformat(k): float(v) for k, v in (cache.get(dn) or {}).items()}
         if not su or not sd:
             continue
-        m = match_pairs(su, sd)
+        m = match_pairs(up, dn, su, sd, max_lag=a.window, win=RATE_WIN)
+        m = [x for x in m if x['up_rise_m'] >= a.rate_min]
         rows.extend(m)
         if m:
             lags = sorted(x['lag_h'] for x in m)

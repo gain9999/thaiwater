@@ -329,3 +329,36 @@ Node coverage — which chart has what
   hardcoded node each.
 - Practical consequence: for a complete topology, combine `waterlevel_load` + `watergate_load` (basins 6-26) and use
   the full chart page's node list as the code inventory. The brief chart is a simplified view.
+
+## 9. Measured travel times (rise-rate timing, 2026-09-30)
+
+Method (`tools/event_lag.py`): each station's series is resampled to hourly; an "event" is a local
+maximum of the 12-hour rise rate of at least 0.15 m with 72 h between events; the matching time
+downstream is the strongest 12-hour rise within 36 h after it, requiring at least 0.05 m. The lag is
+the difference. Correlation of the two series was tried first and rejected — both gauges see the same
+basin-wide rain, so increments line up at zero lag and swamp the translation signal.
+
+| reach | events | median lag (h) | range (h) | regulated? |
+|---|---|---|---|---|
+| C.2 -> CPY002 | 4 | 20 | 7-24 | - |
+| CPY002 -> CPY004 | 3 | 17 | 2-25 | Chao Phraya Dam headpond (backwater) |
+| CPY004 -> C.13 | 2 | 36 | 1-36 | Chao Phraya Dam tailrace (gate-controlled) |
+| C.13 -> CPY005 | 4 | 16 | 1-29 | just below the dam, release-controlled |
+
+Data coverage: 5 of 22 stations in the pair list returned at least one usable series in this run
+(45 days requested). Stations that returned nothing: CPY006, C.3, CPY007, C.7A, CPY008, CPY012, CPY014, PIN002, PIN003, PIN004, PIN005, NAN007, NAN006, NAN014, NAN011, YOM009, CPY001.
+The public graph endpoint was badly degraded while this ran (`500 ... pq: out of shared memory` on
+most calls); re-run `python3 tools/event_lag.py` to fill the gaps from the cache, which resumes
+where it left off.
+
+How to read this
+
+- The only reach with both ends free-flowing and enough events is C.2 -> CPY002 (27 km): median
+  20.0 h, i.e. roughly 0.3-0.5 m/s. That is the same order as the chart's day-scale labels
+  ("1 วัน" over comparable distances), so the chart is not contradicted, but ±10 h of spread means
+  this cannot yet replace the chart's own figures.
+- Reaches into or out of the Chao Phraya Dam (CPY004 headpond, C.13 tailrace, CPY005 below the dam)
+  are marked regulated and must not be quoted as travel times: their levels jump when gates move
+  (visible here as 1-hour lags).
+- To tighten this: route on discharge (C.2 and C.13 both publish it), pick isolated events rather
+  than every rise, and extend the window beyond the ~2 months available here.
