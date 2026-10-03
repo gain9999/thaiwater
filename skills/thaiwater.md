@@ -361,3 +361,11 @@ call, chain 14-day slices to cover a season, retry each slice 3-4 times with a p
 disk so re-runs skip stations already fetched. `waterlevel_graph_oldcode?station_id=<OLDCODE>&agency_id=9`
 is the fallback path when the id-based variant is erroring; it often returns zero rows for RID stations.
 `watergate_load?basin_code=<6..26>` is heavier but reliable (~12 MB for all 21 basins).
+
+### Placeholder rows stamped a day ahead
+
+`waterlevel_graph` also emits a placeholder row stamped for the **next day** with null values
+(`datetime` in the future, `value`/`discharge` null). If a chain snapshot takes the latest row per
+station it will pick that null and the whole downstream-chain result comes back `None` (the
+C.2→C.3/C.7A chain trend hit exactly this). Always drop rows whose timestamp is in the future before
+selecting the latest value, then C.3 / C.7A / C.36 / C.35 print normally.
