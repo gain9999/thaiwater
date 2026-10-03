@@ -72,6 +72,11 @@ def main():
                               "data", "waterlevel_load.json")
     path = sys.argv[1] if len(sys.argv) > 1 else default_wl
     filt = sys.argv[2] if len(sys.argv) > 2 else None
+    if not os.path.exists(path):
+        raise SystemExit(
+            f"snapshot not found: {path}\n"
+            "Run tools/fetch_nodes.py once (it writes data/waterlevel_load.json from the "
+            "key-free public API), or pass a snapshot path as the first argument.")
     st = load(path)
     print(f"# station chain reconstruction — {len(st)} stations with coordinates\n")
     rivers = defaultdict(list)

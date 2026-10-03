@@ -25,8 +25,8 @@ Conventions:
 | `q_lag.py` | Travel time from **discharge** (gate-step routing) — the method that works with RID releases | API/cache → stdout |
 | `lag_correlation.py` | Travel-time lag between an upstream/downstream pair by correlation | API/cache → stdout |
 | `travel_time.py` | Extract the brief chart's printed travel-time labels, and check node coverage | SVG → stdout |
-| `svgnet.py` | Cross-check the thaiwater-derived chain against the official chart SVG | `data/raw/*` → stdout |
-| `analyze_svg.py` | Snap SVG station attach-points onto the drawn river, print the chart's own order | `data/raw/{cp.svg,svg_paths.json,svg_leaders.json}` → stdout |
+| `svgnet.py` | Cross-check the thaiwater-derived chain against the official chart SVG | `data/raw/*` → stdout (+ builds `data/raw/svg_paths.json`) |
+| `analyze_svg.py` | Snap SVG station attach-points onto the drawn river, print the chart's own order | `data/raw/{cp.svg,svg_leaders.json}` → stdout |
 | `compare_snapshot.py` | Diff two `waterlevel_load` snapshots (level m MSL + discharge deltas) | two JSON snapshots → stdout |
 | `chain_trend.py` | Main-stem Chao Phraya level/discharge trend for the last N hours (+ PNG) | public API → `data/chain_trend.json`, `out/chain_trend.png` |
 | `forecast_plot.py` | C.2 observed-vs-forecast plot (the forecast half drawn as a marked zone) | `data/chain_trend.json` → `out/c2_observed_vs_forecast.png` |
@@ -41,6 +41,10 @@ Conventions:
 | `floodhub_summary.py` | Summarise that JSON: corridor gauges, severities, nearest reaches to C.2/C.13 | `out/floodhub/c13_floodhub.json` → stdout |
 | `floodhub_basin.py` | Basin gauges flagged SEVERE/EXTREME with peak values | same JSON → stdout |
 | `floodhub_probe.py` | Flood Hub reachability / API-key check | Flood Hub API → stdout |
+
+Data files that are **derived and large** are not committed — the first run of a tool builds
+what it needs: `svg_paths.json` comes from `data/raw/cp.svg` automatically, `waterlevel_load.json`
+from `tools/fetch_nodes.py`, and `out/floodhub/*.json` from `tools/floodhub_c13.py`.
 
 The corresponding reference documentation lives in `../skills/` (one markdown file per source:
 `thaiwater.md`, `rid_forecast.md`, `google-flood-hub.md`, `station_network.md`, `weathernext3.md`, …).
