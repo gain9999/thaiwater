@@ -96,7 +96,12 @@ for m in re.finditer(r'<div id="([^"]+)"></div>', open(os.path.join(RAW, 'hii_ch
 brief = sorted({m.group(1) for m in re.finditer(r'id="([A-Za-z][\w.\-]*?)(?:-title|-line|-box|-icon|-wl|-cms|-discharge|-wl-in|-wl-out|-path)"', svg)})
 print(f'\ncodes in brief-chart SVG: {len(brief)}   nodes in full chart page: {len(full)}')
 
-d = json.load(open(os.path.join(os.path.dirname(RAW), 'waterlevel_load.json')))
+d_ptr = os.path.join(os.path.dirname(RAW), 'waterlevel_load.json')
+if not os.path.exists(d_ptr):
+    print(f'\nnote: {os.path.relpath(d_ptr)} not present — skipping the coverage check')
+    print('      (run tools/fetch_nodes.py to fetch it; the chart sections above are complete)')
+    raise SystemExit(0)
+d = json.load(open(d_ptr))
 have = {norm(str((s.get('station') or {}).get('tele_station_oldcode') or '')) for s in d['waterlevel_data']['data']} - {''}
 RID_EXTRA = ['P5', 'W10A', 'Y14', 'Y6', 'N27', 'N22', 'N8A', 'C29A', 'C22', 'C4', 'C54', 'C39', 'S28A', 'S39']
 HII_EXTRA = ['CHM006', 'WAN005', 'YOM001', 'YOM002', 'KWN002', 'CPY013', 'THA011', 'THA002', 'PAS010', 'PAS004', 'BPK002', 'NYK014', 'YOM011']
