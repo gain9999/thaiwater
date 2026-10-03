@@ -15,7 +15,13 @@ import urllib.request
 API = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_graph_oldcode'
 FORECAST_API = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load'
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-INV = json.load(open(os.path.join(BASE, 'data', 'station_nodes.json')))
+INV_PATH = os.path.join(BASE, 'data', 'station_nodes.json')
+if not os.path.exists(INV_PATH):
+    raise SystemExit(
+        f"node inventory not found: {INV_PATH}\n"
+        "Run tools/fetch_nodes.py once (it writes data/station_nodes.json from the "
+        "key-free public API).")
+INV = json.load(open(INV_PATH))
 
 
 def probe(code, start='2026-09-29', end='2026-10-02'):
