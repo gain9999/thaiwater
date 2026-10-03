@@ -33,6 +33,8 @@ async def main(png, prefix, y0, y1, scale, band_h, w):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 5:
+        raise SystemExit("usage: clip_png.py PNG OUT_PREFIX Y0 Y1 [SCALE] [BAND_H]")
     png, prefix = sys.argv[1], sys.argv[2]
     y0, y1 = float(sys.argv[3]), float(sys.argv[4])
     scale = float(sys.argv[5]) if len(sys.argv) > 5 else 1.0

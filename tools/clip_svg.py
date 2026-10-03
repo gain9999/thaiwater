@@ -29,6 +29,8 @@ async def main(out, x, y, w, h, scale):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 6:
+        raise SystemExit("usage: clip_svg.py OUT.png X Y W H [SCALE]")
     out = sys.argv[1]
     x, y, w, h = (float(v) for v in sys.argv[2:6])
     scale = float(sys.argv[6]) if len(sys.argv) > 6 else 2.0
