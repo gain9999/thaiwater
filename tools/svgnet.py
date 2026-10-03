@@ -140,8 +140,13 @@ def snap(poly, p):
     return best  # (distance, arc position)
 
 
-def main():
-    tree = ET.parse(SVG)
+def parse(svg=SVG, verbose=True):
+    """Parse the chart SVG -> (paths, leaders, parent, root).
+
+    paths   : [(id, [ (x,y) ... ], [group ancestry])]
+    leaders : {station code: (attach point, label point)}
+    """
+    tree = ET.parse(svg)
     root = tree.getroot()
 
     # parent map to know group ancestry
@@ -180,17 +185,44 @@ def main():
                 if len(pp) >= 2:
                     leaders[code] = (pp[0], pp[-1])
 
-    print(f'paths: {len(paths)}  stations with leader: {len(leaders)}')
-    # group stats
-    from collections import Counter
-    print('path groups:', Counter(tuple(g) for _, _, g in paths).most_common(12))
+    if verbose:
+        print(f'paths: {len(paths)}  stations with leader: {len(leaders)}')
+        # group stats
+        from collections import Counter
+        print('path groups:', Counter(tuple(g) for _, _, g in paths).most_common(12))
     return paths, leaders, parent, root
 
 
+def dump(raw_dir=RAW, svg=None):
+    """Write raw_dir/svg_paths.json + svg_leaders.json from the chart SVG."""
+    svg = svg or os.path.join(raw_dir, 'cp.svg')
+    paths, leaders, _parent, _root = parse(svg, verbose=False)
+    json.dump({k: v for k, v in leaders.items()},
+              open(os.path.join(raw_dir, 'svg_leaders.json'), 'w'))
+    json.dump([[i, p, g] for i, p, g in paths],
+              open(os.path.join(raw_dir, 'svg_paths.json'), 'w'))
+    return paths, leaders
+
+
+def ensure_paths(raw_dir=RAW, svg=None):
+    """Return (paths, leaders) for the chart SVG, building the cache if absent.
+
+    svg_paths.json is a large derived file that is not committed, so the
+    chart-reading tools build it on first use from data/raw/cp.svg."""
+    p = os.path.join(raw_dir, 'svg_paths.json')
+    l = os.path.join(raw_dir, 'svg_leaders.json')
+    if os.path.exists(p) and os.path.exists(l):
+        return json.load(open(p)), json.load(open(l))
+    src = svg or os.path.join(raw_dir, 'cp.svg')
+    if not os.path.exists(src):
+        raise SystemExit(f'chart SVG not found: {src} (see data/README.md)')
+    paths, leaders = dump(raw_dir, src)
+    return [[i, pt, g] for i, pt, g in paths], {k: v for k, v in leaders.items()}
+
+
 if __name__ == '__main__':
-    paths, leaders, parent, root = main()
+    paths, leaders, parent, root = parse()
     # attach point = leader end farthest from the station box
-    pts = []
     for code, (p1, p2) in list(leaders.items())[:10]:
         print(code, p1, p2)
     json.dump({k: v for k, v in leaders.items()}, open(os.path.join(RAW, 'svg_leaders.json'), 'w'))

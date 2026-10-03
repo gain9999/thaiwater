@@ -13,8 +13,8 @@ XMLNS = '{http://www.w3.org/2000/svg}'
 SVG_PATH = os.path.join(RAW, 'cp.svg')
 svg = open(SVG_PATH, encoding='utf-8', errors='replace').read()
 root = ET.parse(SVG_PATH).getroot()
-paths = json.load(open(os.path.join(RAW, 'svg_paths.json')))
-leaders = json.load(open(os.path.join(RAW, 'svg_leaders.json')))
+# svg_paths.json is derived and not committed — build it from cp.svg on first use
+paths, leaders = sn.ensure_paths(RAW, SVG_PATH)
 
 # ---- 1. travel-time labels (text nodes with a matrix translate)
 TIME = re.compile(r'^\s*(\d+(?:\.\d+)?)\s*(ชม\.?|ชั่วโมง|วัน)\s*$')

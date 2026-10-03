@@ -14,8 +14,8 @@ spec.loader.exec_module(sn)  # module-level main() is guarded
 import xml.etree.ElementTree as ET
 NS = '{http://www.w3.org/2000/svg}'
 
-paths = json.load(open(os.path.join(RAW, 'svg_paths.json')))
-leaders = json.load(open(os.path.join(RAW, 'svg_leaders.json')))
+# svg_paths.json is derived and not committed — build it from cp.svg on first use
+paths, leaders = sn.ensure_paths(RAW, os.path.join(RAW, 'cp.svg'))
 
 root = ET.parse(os.path.join(RAW, 'cp.svg')).getroot()
 boxes = {}

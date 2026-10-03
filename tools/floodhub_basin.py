@@ -6,6 +6,10 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'out', 'floodhub', 'c13_floodhub.json')
+if not os.path.exists(SRC):
+    raise SystemExit(
+        f"Flood Hub JSON not found: {SRC}\n"
+        "Run tools/floodhub_c13.py first (needs FLOODHUB_API_KEY), or pass the JSON path.")
 D = json.load(open(SRC))
 gauges = D['gauges']; statuses = D['statuses']; models = D['models']
 
