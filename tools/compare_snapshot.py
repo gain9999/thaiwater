@@ -36,6 +36,8 @@ def delta(r, o, field):
 
 
 def main():
+    if len(sys.argv) < 3:
+        raise SystemExit("usage: compare_snapshot.py NEW.json OLD.json [--filter SUBSTR] [--all]")
     new_path, old_path = sys.argv[1], sys.argv[2]
     filt = []
     show_all = False
