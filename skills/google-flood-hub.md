@@ -20,6 +20,34 @@ This skill provides comprehensive instructions, code patterns, and workflows for
 
 ---
 
+## 1b. Operational use — Chao Phraya corridor check (2026-10)
+
+The working key on this VM is `/home/droid/.floodhub-api-key` (mode 600; never commit the value).
+Nearest HYBAS reaches to the monitored RID stations (probe with `:searchGaugesByArea`, then
+`:queryGaugeForecasts`):
+
+| RID station | HYBAS reach |
+|---|---|
+| C.2 Nakhon Sawan | `hybas_4121104200` (15.715N 100.152E) |
+| C.13 tail of Chao Phraya Dam | `hybas_4121582620` (15.185N 100.202E) |
+
+Corridor reference points used by the helper: C.2 (15.7047, 100.1083), C.13 (15.16384, 100.18792),
+C.3 Bang Phutsa (14.8850, 100.4010), C.7A Bang Kaeo (14.5620, 100.4400), CPY011 Ayutthaya
+(14.36913, 100.52861).
+
+- **Never mix Flood Hub numbers with RID/thaiwater numbers in one figure.** The HYBAS reaches are
+  model units and diverge from the gauges (≈1,150 vs 2,340 m³/s at C.13) — quote Flood Hub only as
+  shape/severity against Flood Hub's own return-period thresholds, with the gauge value given
+  alongside and labelled separately.
+- C.13 sits immediately below Chao Phraya Dam, so the dam release dominates its short-term level; a
+  Flood Hub recession there is not a prediction of the release schedule.
+- This project uses Flood Hub (not WeatherNext 3) for the C.13 station-linked corridor work; WN3 stays
+  in use for basin-rain cross-checks.
+- The corridor helper script (latest status, thresholds and 7-day discharge per point; writes
+  `out/floodhub/*.json`) lives in the VM working copy only — ask before adding it to the repo.
+
+---
+
 ## 2. API Endpoints Reference
 
 ### Key Endpoints
