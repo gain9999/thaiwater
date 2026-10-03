@@ -8,13 +8,14 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fetch_fc2 import ensure  # noqa: E402  (downloads the chart when it is not there yet)
 
-CHART = os.environ.get('F_C2_JPG') or ensure()
-PY = sys.executable
-CROP = os.path.join(BASE, 'tools', 'crop_zoom.py')
 # Your own image->text helper, called as: PY VISION <png> "<question>".
 VISION = os.environ.get('VISION_SCRIPT', '')
 if not VISION:
     raise SystemExit('set VISION_SCRIPT=/path/to/vision.py (called as: python vision.py IMAGE "question")')
+
+CHART = os.environ.get('F_C2_JPG') or ensure()
+PY = sys.executable
+CROP = os.path.join(BASE, 'tools', 'crop_zoom.py')
 
 JOBS = [
     ('legend', 640, 990, 1400, 1319, 2.0,

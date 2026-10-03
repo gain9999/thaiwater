@@ -6,6 +6,11 @@ import json, urllib.request, datetime, math, os
 from collections import defaultdict
 
 WL = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'waterlevel_load.json')
+if not os.path.exists(WL):
+    raise SystemExit(
+        f"snapshot not found: {WL}\n"
+        "Run tools/fetch_nodes.py once (it writes data/waterlevel_load.json from the "
+        "key-free public API).")
 d = json.load(open(WL))
 ids = {}
 for s in d['waterlevel_data']['data']:
