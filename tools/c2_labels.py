@@ -11,7 +11,10 @@ import numpy as np
 from PIL import Image
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CHART = sys.argv[1] if len(sys.argv) > 1 else os.path.join(BASE, 'out', 'F-C2.jpg')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fetch_fc2 import ensure  # noqa: E402  (downloads the chart when it is not there yet)
+
+CHART = sys.argv[1] if len(sys.argv) > 1 else ensure()
 im = Image.open(CHART).convert('RGB')
 a = np.asarray(im).astype(int)
 lum = a.mean(axis=2)

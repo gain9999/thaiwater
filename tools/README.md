@@ -31,6 +31,7 @@ Conventions:
 | `chain_trend.py` | Main-stem Chao Phraya level/discharge trend for the last N hours (+ PNG) | public API → `data/chain_trend.json`, `out/chain_trend.png` |
 | `forecast_plot.py` | C.2 observed-vs-forecast plot (the forecast half drawn as a marked zone) | `data/chain_trend.json` → `out/c2_observed_vs_forecast.png` |
 | `c2_history.py` | C.2 06:00 level/discharge for the last N days | public API → stdout |
+| `fetch_fc2.py` | Download the RID C.2 forecast chart (F-C2.jpg) into `out/` + print its Last-Modified | RID → `out/F-C2.jpg` |
 | `c2_labels.py` / `c2_layout.py` | Locate the printed value labels on the F-C2 chart by pixel density / gridline mapping | `out/F-C2.jpg` → stdout |
 | `c2_crops.py` / `c2_crops2.py` / `c2_tiles.py` | Crop or tile F-C2 and ask a vision model to transcribe the labels | `out/F-C2.jpg` + `VISION_SCRIPT` → `out/*.png` + transcription |
 | `crop_zoom.py` | Crop + upscale a region of any image | image → PNG |
@@ -43,8 +44,9 @@ Conventions:
 | `floodhub_probe.py` | Flood Hub reachability / API-key check | Flood Hub API → stdout |
 
 Data files that are **derived and large** are not committed — the first run of a tool builds
-what it needs: `svg_paths.json` comes from `data/raw/cp.svg` automatically, `waterlevel_load.json`
-from `tools/fetch_nodes.py`, and `out/floodhub/*.json` from `tools/floodhub_c13.py`.
+what it needs: `svg_paths.json` comes from `data/raw/cp.svg` automatically, the F-C2 chart is
+downloaded by `tools/fetch_fc2.py`, `waterlevel_load.json` from `tools/fetch_nodes.py`, and
+`out/floodhub/*.json` from `tools/floodhub_c13.py`.
 
 The corresponding reference documentation lives in `../skills/` (one markdown file per source:
 `thaiwater.md`, `rid_forecast.md`, `google-flood-hub.md`, `station_network.md`, `weathernext3.md`, …).
