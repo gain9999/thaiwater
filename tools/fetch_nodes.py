@@ -61,8 +61,9 @@ def th(node, key):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--raw-dir', default='data')
-    ap.add_argument('--chart-html', default='/home/droid/wcheck/hii_chaophraya.html')
-    ap.add_argument('--brief-svg', default='/home/droid/wcheck/cp.svg')
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ap.add_argument('--chart-html', default=os.path.join(root, 'data', 'raw', 'hii_chaophraya.html'))
+    ap.add_argument('--brief-svg', default=os.path.join(root, 'data', 'raw', 'cp.svg'))
     a = ap.parse_args()
     os.makedirs(a.raw_dir, exist_ok=True)
 

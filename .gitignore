@@ -5,3 +5,13 @@ data/station_nodes.json
 data/series_raw.json
 data/raw/svg_paths.json
 data/discharge_cache.json
+data/mk_cache.json
+data/chain_trend.json
+
+# Generated scratch: chart crops, logs, plots
+out/
+tools/out/
+
+# Python
+__pycache__/
+*.py[cod]
