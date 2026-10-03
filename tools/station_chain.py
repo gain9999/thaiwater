@@ -14,6 +14,7 @@ Prints markdown. Read-only: never writes to a repo.
 """
 import json
 import math
+import os
 import sys
 from collections import defaultdict
 
@@ -67,7 +68,9 @@ def chain(stations):
 
 
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else "/home/droid/wcheck/wl.json"
+    default_wl = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                              "data", "waterlevel_load.json")
+    path = sys.argv[1] if len(sys.argv) > 1 else default_wl
     filt = sys.argv[2] if len(sys.argv) > 2 else None
     st = load(path)
     print(f"# station chain reconstruction — {len(st)} stations with coordinates\n")

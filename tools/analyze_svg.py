@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 """Snap waterchart.thaiwater.net SVG station attach-points onto the drawn river
 polylines and print the chart's own downstream order."""
-import json, math, re
+import json, math, os, re
 import importlib.util
 
-spec = importlib.util.spec_from_file_location('svgnet', '/home/droid/wcheck/svgnet.py')
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RAW = os.path.join(BASE, 'data', 'raw')
+
+spec = importlib.util.spec_from_file_location('svgnet', os.path.join(BASE, 'tools', 'svgnet.py'))
 sn = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(sn)  # module-level main() is guarded
 
 import xml.etree.ElementTree as ET
 NS = '{http://www.w3.org/2000/svg}'
 
-paths = json.load(open('/home/droid/wcheck/svg_paths.json'))
-leaders = json.load(open('/home/droid/wcheck/svg_leaders.json'))
+paths = json.load(open(os.path.join(RAW, 'svg_paths.json')))
+leaders = json.load(open(os.path.join(RAW, 'svg_leaders.json')))
 
-root = ET.parse('/home/droid/wcheck/cp.svg').getroot()
+root = ET.parse(os.path.join(RAW, 'cp.svg')).getroot()
 boxes = {}
 for el in root.iter():
     eid = el.get('id') or ''
