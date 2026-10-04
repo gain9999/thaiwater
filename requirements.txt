@@ -1,0 +1,12 @@
+# Python dependencies for the thaiwater tools (all optional except stdlib)
+#
+#   python3 -m pip install -r requirements.txt
+#
+# No key is required for the thaiwater.net / RID endpoints. The Google Flood Hub tools
+# additionally need an API key (env FLOODHUB_API_KEY), and the chart-reading helpers need
+# your own image-to-text script (env VISION_SCRIPT).
+
+Pillow>=10          # crop_zoom.py, c2_labels.py, c2_layout.py
+numpy>=1.24         # c2_labels.py, c2_layout.py
+matplotlib>=3.7     # chain_trend.py, forecast_plot.py (Chao Phraya level/discharge plots)
+playwright>=1.40    # clip_svg.py, clip_png.py — also run: playwright install chromium

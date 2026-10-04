@@ -1,0 +1,292 @@
+{
+ "pairs": [
+  {
+   "upstream": "C.2",
+   "downstream": "CPY002",
+   "events": 4,
+   "median_lag_h": 20.0,
+   "min": 7.0,
+   "max": 24.0,
+   "lags": [
+    7.0,
+    12.0,
+    20.0,
+    24.0
+   ],
+   "regulated": ""
+  },
+  {
+   "upstream": "CPY002",
+   "downstream": "CPY004",
+   "events": 3,
+   "median_lag_h": 17.0,
+   "min": 2.0,
+   "max": 25.0,
+   "lags": [
+    2.0,
+    17.0,
+    25.0
+   ],
+   "regulated": "Chao Phraya Dam headpond (backwater)"
+  },
+  {
+   "upstream": "CPY004",
+   "downstream": "C.13",
+   "events": 2,
+   "median_lag_h": 36.0,
+   "min": 1.0,
+   "max": 36.0,
+   "lags": [
+    1.0,
+    36.0
+   ],
+   "regulated": "Chao Phraya Dam tailrace (gate-controlled)"
+  },
+  {
+   "upstream": "C.13",
+   "downstream": "CPY005",
+   "events": 4,
+   "median_lag_h": 16.0,
+   "min": 1.0,
+   "max": 29.0,
+   "lags": [
+    1.0,
+    6.0,
+    16.0,
+    29.0
+   ],
+   "regulated": "just below the dam, release-controlled"
+  },
+  {
+   "upstream": "CPY005",
+   "downstream": "CPY006",
+   "events": 4,
+   "median_lag_h": 12.0,
+   "min": 1.0,
+   "max": 14.0,
+   "lags": [
+    1.0,
+    5.0,
+    12.0,
+    14.0
+   ],
+   "regulated": "just below the dam, release-controlled"
+  },
+  {
+   "upstream": "CPY006",
+   "downstream": "C.3",
+   "events": 3,
+   "median_lag_h": 9.0,
+   "min": 8.0,
+   "max": 35.0,
+   "lags": [
+    8.0,
+    9.0,
+    35.0
+   ],
+   "regulated": ""
+  },
+  {
+   "upstream": "C.3",
+   "downstream": "CPY007",
+   "events": 3,
+   "median_lag_h": 10.0,
+   "min": 8.0,
+   "max": 35.0,
+   "lags": [
+    8.0,
+    10.0,
+    35.0
+   ],
+   "regulated": ""
+  },
+  {
+   "upstream": "CPY007",
+   "downstream": "C.7A",
+   "events": 7,
+   "median_lag_h": 12.0,
+   "min": 1.0,
+   "max": 34.0,
+   "lags": [
+    1.0,
+    3.0,
+    11.0,
+    12.0,
+    14.0,
+    23.0,
+    34.0
+   ],
+   "regulated": ""
+  },
+  {
+   "upstream": "CPY008",
+   "downstream": "CPY012",
+   "events": 12,
+   "median_lag_h": 12.0,
+   "min": 7.0,
+   "max": 33.0,
+   "lags": [
+    7.0,
+    7.0,
+    8.0,
+    9.0,
+    10.0,
+    12.0,
+    12.0,
+    25.0,
+    29.0,
+    31.0,
+    33.0,
+    33.0
+   ],
+   "regulated": ""
+  },
+  {
+   "upstream": "CPY012",
+   "downstream": "CPY014",
+   "events": 17,
+   "median_lag_h": 10.0,
+   "min": 2.0,
+   "max": 34.0,
+   "lags": [
+    2.0,
+    7.0,
+    8.0,
+    9.0,
+    9.0,
+    10.0,
+    10.0,
+    10.0,
+    10.0,
+    10.0,
+    11.0,
+    18.0,
+    28.0,
+    34.0,
+    34.0,
+    34.0,
+    34.0
+   ],
+   "regulated": ""
+  },
+  {
+   "upstream": "PIN002",
+   "downstream": "PIN003",
+   "events": 7,
+   "median_lag_h": 21.0,
+   "min": 1.0,
+   "max": 24.0,
+   "lags": [
+    1.0,
+    21.0,
+    21.0,
+    21.0,
+    22.0,
+    23.0,
+    24.0
+   ],
+   "regulated": ""
+  },
+  {
+   "upstream": "PIN004",
+   "downstream": "PIN005",
+   "events": 3,
+   "median_lag_h": 1.0,
+   "min": 1.0,
+   "max": 1.0,
+   "lags": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "regulated": ""
+  },
+  {
+   "upstream": "NAN007",
+   "downstream": "NAN006",
+   "events": 4,
+   "median_lag_h": 24.0,
+   "min": 1.0,
+   "max": 36.0,
+   "lags": [
+    1.0,
+    1.0,
+    24.0,
+    36.0
+   ],
+   "regulated": ""
+  },
+  {
+   "upstream": "NAN014",
+   "downstream": "NAN011",
+   "events": 9,
+   "median_lag_h": 12.0,
+   "min": 4.0,
+   "max": 33.0,
+   "lags": [
+    4.0,
+    6.0,
+    6.0,
+    9.0,
+    12.0,
+    15.0,
+    28.0,
+    29.0,
+    33.0
+   ],
+   "regulated": ""
+  },
+  {
+   "upstream": "YOM009",
+   "downstream": "CPY001",
+   "events": 7,
+   "median_lag_h": 23.0,
+   "min": 5.0,
+   "max": 36.0,
+   "lags": [
+    5.0,
+    11.0,
+    13.0,
+    23.0,
+    33.0,
+    36.0,
+    36.0
+   ],
+   "regulated": ""
+  }
+ ],
+ "hours_of_data": {
+  "C.2": 1274,
+  "CPY002": 1453,
+  "CPY004": 1454,
+  "C.13": 1274,
+  "CPY005": 759,
+  "CPY006": 1454,
+  "C.3": 696,
+  "CPY007": 1454,
+  "C.7A": 1275,
+  "CPY008": 1439,
+  "CPY012": 1455,
+  "CPY014": 1455,
+  "PIN002": 1454,
+  "PIN003": 719,
+  "PIN004": 1439,
+  "PIN005": 1439,
+  "NAN007": 1455,
+  "NAN006": 1455,
+  "NAN014": 1456,
+  "NAN011": 1455,
+  "YOM009": 1455,
+  "CPY001": 1455
+ },
+ "params": {
+  "rate_win_h": 12,
+  "rate_min_m": 0.15,
+  "event_sep_h": 72,
+  "down_min_m": 0.05,
+  "window_h": 36,
+  "days": 60,
+  "chunk_days": 14
+ },
+ "method": "rise-rate timing; dam-controlled stations flagged in REGULATED"
+}

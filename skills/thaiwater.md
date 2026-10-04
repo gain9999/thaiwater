@@ -344,3 +344,28 @@ RID's own forecast charts and tide predictions that accompany these pages are **
 - Level 5: Over-bank (น้ำล้นตลิ่ง — water above the river bank; `diff_wl_bank_text` = `ล้นตลิ่ง (ม.)`)
 
 Use `diff_wl_bank_text` as the over-bank indicator. `situation_level` can be missing, so it is not a complete substitute.
+
+## Repository layout (helpers)
+
+- `tools/` — runnable helpers, all key-free and repo-relative (`data/raw/` holds the chart sources):
+  `fetch_nodes.py` (node inventory), `event_lag.py` (measured travel times), `travel_time.py` +
+  `svgnet.py` (chart geometry and its travel-time labels), `station_chain.py`, `lag_correlation.py`.
+- `data/` — cached payloads and derived tables; see `data/README.md` for provenance and refresh commands.
+  Large raw API caches are gitignored.
+
+## API throttling (learned the hard way)
+
+`waterlevel_graph` returns `500: Internal Database Error ... pq: out of shared memory` for wide date
+ranges or when a handful of requests arrive back-to-back. Working practice: request at most ~14 days per
+call, chain 14-day slices to cover a season, retry each slice 3-4 times with a pause, and cache results to
+disk so re-runs skip stations already fetched. `waterlevel_graph_oldcode?station_id=<OLDCODE>&agency_id=9`
+is the fallback path when the id-based variant is erroring; it often returns zero rows for RID stations.
+`watergate_load?basin_code=<6..26>` is heavier but reliable (~12 MB for all 21 basins).
+
+### Placeholder rows stamped a day ahead
+
+`waterlevel_graph` also emits a placeholder row stamped for the **next day** with null values
+(`datetime` in the future, `value`/`discharge` null). If a chain snapshot takes the latest row per
+station it will pick that null and the whole downstream-chain result comes back `None` (the
+C.2→C.3/C.7A chain trend hit exactly this). Always drop rows whose timestamp is in the future before
+selecting the latest value, then C.3 / C.7A / C.36 / C.35 print normally.
