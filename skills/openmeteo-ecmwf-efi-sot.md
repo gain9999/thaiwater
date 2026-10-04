@@ -66,7 +66,7 @@ def main():
     ap.add_argument("--lat-max", type=float, default=20.5)
     ap.add_argument("--lon-min", type=float, default=97.0)   # 97.3E = far west Thailand
     ap.add_argument("--lon-max", type=float, default=106.0)  # 105.6E = far east Thailand
-    ap.add_argument("--step", type=float, default=0.25)
+    ap.add_argument("--step", type=float, default=0.25)  # sampling step; native EC46 grid is ~36 km, API snaps to nearest
     ap.add_argument("--past-days", type=int, default=30)
     ap.add_argument("--forecast-days", type=int, default=46)  # EC46 max
     ap.add_argument("--chunk", type=int, default=250)
@@ -145,7 +145,7 @@ def main():
     ap.add_argument("--lat-max", type=float, default=20.5)
     ap.add_argument("--lon-min", type=float, default=97.0)
     ap.add_argument("--lon-max", type=float, default=106.0)
-    ap.add_argument("--step", type=float, default=0.25)
+    ap.add_argument("--step", type=float, default=0.25)  # sampling step; native EC46 grid is ~36 km, API snaps to nearest
     ap.add_argument("--chunk", type=int, default=200)
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
@@ -315,7 +315,7 @@ def main():
              "the model climate's extremes (SOT 1 \u2248 forecast 90th pct = climate 99th pct) "
              "\u00b7 0 = no shift \u00b7 \u2212 = drier tail \u00b7 contours 0,1,2,5,8",
              ha="center", fontsize=7.5, color="#333333")
-    footer = "High EFI + SOT > 0 together = strongest extreme signal \u00b7 0.25\u00b0 grid"
+    footer = "High EFI + SOT > 0 together = strongest extreme signal \u00b7 EC46 ~36 km native grid (sampled 0.25\u00b0)"
     if a.base_note:
         footer = a.base_note + " \u00b7 " + footer
     fig.text(0.5, 0.008, footer, ha="center", fontsize=7.5, color="#555555")
@@ -418,7 +418,7 @@ def main():
     title = a.title or ("ECMWF EC46 daily precipitation (ensemble mean) \u00b7 Thailand "
                         "\u00b7 %s \u2013 %s" % (times[0], times[-1]))
     fig.text(0.5, 0.965, title, ha="center", fontsize=12, weight="bold")
-    fig.text(0.5, 0.015, "Source: Open-Meteo seasonal API (ECMWF EC46) \u00b7 0.25\u00b0 grid "
+    fig.text(0.5, 0.015, "Source: Open-Meteo seasonal API (ECMWF EC46) \u00b7 ~36 km native grid (sampled 0.25\u00b0) "
              "\u00b7 dates in ICT", ha="center", fontsize=7.5, color="#555555")
     fig.savefig(a.out, dpi=150)
     print("wrote", a.out)
@@ -451,6 +451,11 @@ if __name__ == "__main__":
   event); 2/5/8 = increasingly extreme. High EFI + SOT ≥ 1 = strongest
   warning. Where the climate tail is narrow (dry regions/seasons) SOT can
   spike on small absolute rain — check mm too.
+- **Grid resolution**: the EC46 native grid is ~36 km (~0.32°). The API snaps
+  each requested point to the nearest native grid cell (no interpolation), so
+  sampling at 0.25° oversamples — adjacent points often share a value. Sample
+  *finer* than ~0.32° to guarantee every model cell is hit; coarser risks
+  missing cells. EFI values come rounded to 0.1.
 - **Matplotlib pitfall**: `contour()` silently auto-picks bogus levels when
   requested levels exceed the data range — filter levels by data max first.
 - Thailand spans ~97.3–105.6°E; the default grid (97.0–106.0) keeps the far
